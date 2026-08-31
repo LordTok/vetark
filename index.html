@@ -278,7 +278,7 @@ tr.selected:hover{background:var(--mint-100)}
 /* hero video — plná veľkosť, bez orezu */
 .hero{position:relative;border-radius:var(--radius);overflow:hidden;background:var(--charcoal);margin-bottom:24px;box-shadow:0 12px 32px rgba(1,46,67,.18)}
 .hero video{width:100%;height:auto;max-height:72vh;object-fit:cover;display:block}
-.hero .hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(1,46,67,.05) 30%, rgba(1,46,67,.72));display:flex;align-items:flex-end;padding:26px 28px}
+.hero .hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg, transparent 55%, rgba(1,46,67,.55));display:flex;align-items:flex-end;padding:22px 26px}
 .hero-copy{color:#fff;max-width:560px}
 .hero-badge{display:inline-block;background:rgba(255,255,255,.16);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
 .hero-title{font-family:'Nunito',sans-serif;font-size:34px;font-weight:900;line-height:1.1;text-shadow:0 2px 12px rgba(0,0,0,.4);margin-bottom:6px}
@@ -596,14 +596,9 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
       <source src="assets/vetark-loop.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay">
-          <div class="hero-copy">
-            <div class="hero-badge">Mobilná veterinárna služba</div>
-            <div class="hero-title">Prídeme za vaším miláčikom</div>
-            <div class="hero-sub">„Vaši miláčikovia, naša priorita!" · Pohotovosť pre registrovaných pacientov</div>
-            <div class="hero-ctas">
-              <button class="hbtn blue" data-hero="kontrola">Objednať kontrolu</button>
-              <button class="hbtn red" data-hero="zakrok">Objednať zákrok</button>
-            </div>
+          <div class="hero-ctas">
+            <button class="hbtn blue" data-hero="kontrola">Objednať kontrolu</button>
+            <button class="hbtn red" data-hero="zakrok">Objednať zákrok</button>
           </div>
         </div>
       </div>
@@ -1089,12 +1084,12 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
    Kým sú hodnoty nevyplnené, stránka beží v obmedzenom režime
    (funguje Ukážkový režim s lokálnym ukladaním).
    ================================================================ */
-const SUPABASE_URL     = "https://xguynguhxnxhrrebjnrw.supabase.co";
-const SUPABASE_ANON_KEY= "sb_publishable_rWdMnwGN5piUrwcMis9ioQ_bUPQJv0y";
-const DISCORD_GUILD_ID = "1323633405992112170";
+const SUPABASE_URL     = "DOPLN_SUPABASE_URL";
+const SUPABASE_ANON_KEY= "DOPLN_SUPABASE_ANON_KEY";
+const DISCORD_GUILD_ID = "DOPLN_ID_TVOJHO_SERVERU";
 /* ID rolí, ktoré vidia internú časť (SOP, cenník, záznamy, dokumenty).
    Pravý klik na rolu v nastaveniach serveru → Copy Role ID. Môže ich byť viac. */
-const INTERNAL_ROLE_IDS = ["1323683204464509031"];
+const INTERNAL_ROLE_IDS = ["DOPLN_ROLE_ID"];
 /* Discord webhooky: kanál → Upraviť kanál → Integrácie → Webhooky → Nový webhook → Copy URL */
 const WEBHOOK_OBJEDNAVKY = "DOPLN_WEBHOOK_URL_OBJEDNAVKY"; // kanál #objednavky
 const WEBHOOK_ZAZNAMY    = "DOPLN_WEBHOOK_URL_ZAZNAMY";    // kanál #vyjazdy (voliteľné)
@@ -1214,7 +1209,7 @@ document.getElementById('btnLogin').addEventListener('click', async ()=>{
   }
   await sb.auth.signInWithOAuth({
     provider: 'discord',
-    options: { scopes: 'identify guilds guilds.members.read', redirectTo: window.location.origin + window.location.pathname }
+    options: { scopes: 'identify guilds guilds.members.read', redirectTo: window.location.origin + window.location.pathname, queryParams: { prompt: 'consent' } }
   });
 });
 
