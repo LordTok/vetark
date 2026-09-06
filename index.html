@@ -546,7 +546,6 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
       Prihlásiť sa cez Discord
     </button>
     <div class="gate-invite" id="gateInvite" style="display:none">Nie si člen? <a id="gateInviteLink" href="#" target="_blank" rel="noopener">Pridaj sa na náš Discord →</a></div>
-    <button class="btn-demo" id="btnDemo">Ukážkový režim (bez prihlásenia)</button>
     <div class="gate-error" id="gateError"></div>
     <div class="gate-note">Prístup majú len členovia Discord serveru VET ARK.<br>Prihlásením potvrdzuješ interné pravidlá frakcie.</div>
     <div class="gate-disclaimer">Fiktívny roleplay projekt (FiveM / GTA V). Nejde o skutočnú veterinárnu službu.</div>
@@ -555,7 +554,6 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
 
 <!-- ======================== APP ======================== -->
 <div id="app">
-  <div class="demo-banner" id="demoBanner">⚠ Ukážkový režim — Discord overenie je vypnuté</div>
   <header class="topbar">
     <div class="brand">
       <img src="assets/logo.png" alt="" style="width:34px;height:34px;object-fit:contain">
@@ -614,7 +612,7 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
         <div class="section-head" style="margin-bottom:16px">
           <span class="eyebrow">Objednávka</span>
           <h2 id="bookingTitle">Objednať kontrolu</h2>
-          <p>Vyplň údaje, vygeneruj objednávku a skopíruj ju do Discord kanála #objednavky. Ozveme sa s termínom.</p>
+          <p>Vyplň údaje a odošli — objednávka príde priamo nášmu tímu. Ozveme sa s termínom.</p>
         </div>
         <div class="form-grid">
           <div class="field"><label for="bName">Meno klienta (IC)</label><input id="bName" placeholder="meno postavy"></div>
@@ -626,10 +624,6 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
           <div class="field full"><label for="bNote" id="bNoteLabel">Poznámka / popis problému</label><textarea id="bNote" placeholder="stručný popis"></textarea></div>
         </div>
         <button class="btn-gen" id="bGen">Odoslať objednávku</button>
-        <div class="report-out" id="bOut">
-          <pre id="bText"></pre>
-          <button class="btn-copy" id="bCopy">Kopírovať pre Discord</button>
-        </div>
       </div>
 
 
@@ -1052,7 +1046,7 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
     <h2>Ochrana osobných údajov</h2>
     <div class="rd-meta">Vet Ark — fanúšikovský roleplay projekt (FiveM)</div>
     <div class="rd-body">
-      <p><b>Aké údaje spracúvame.</b> Pri prihlásení cez Discord sa ukladá vaše Discord meno, e-mailová adresa, avatar a identifikátor účtu, spolu s informáciou o členstve a rolách na Discord serveri VET ARK (slúži na overenie prístupu). Ak odošlete objednávku, spracúvame údaje, ktoré do nej uvediete (herné meno postavy, kontakt). Obsah pridaný členmi (články, fotky, karty pacientov) sa ukladá spolu s Discord menom autora.</p>
+      <p><b>Aké údaje spracúvame.</b> Pri prihlásení cez Discord sa ukladá vaše Discord meno, avatar a identifikátor účtu; členstvo a rola na Discord serveri VET ARK sa overujú na serveri pri každom prístupe (slúži na overenie prístupu). Ak odošlete objednávku, spracúvame údaje, ktoré do nej uvediete (herné meno postavy, kontakt). Obsah pridaný členmi (články, fotky, karty pacientov) sa ukladá spolu s Discord menom autora.</p>
       <p><b>Na čo ich používame.</b> Výlučne na fungovanie tejto stránky: prihlásenie, overenie členstva, spracovanie objednávok v rámci roleplay hry a zobrazovanie obsahu. Údaje nepredávame, neposkytujeme tretím stranám na marketing a nepoužívame ich na profilovanie.</p>
       <p><b>Kde sú uložené.</b> Údaje sú uložené v službe Supabase (databáza a prihlásenie). Objednávky a lekárske záznamy sa odosielajú do súkromného Discord servera frakcie. Táto stránka nepoužíva analytické ani reklamné sledovacie nástroje; vo vašom prehliadači ukladá len funkčné nastavenia (napr. zvolený vzhľad stránky).</p>
       <p><b>Vaše práva.</b> Máte právo požiadať o informáciu, aké údaje o vás evidujeme, o ich opravu alebo vymazanie. Stačí napísať správcom na Discord serveri VET ARK — účet a súvisiace údaje vymažeme.</p>
@@ -1080,20 +1074,13 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
 
 <script>
 /* ================================================================
-   PRODUKČNÁ KONFIGURÁCIA — doplň 6 hodnôt podľa NAVOD-PRODUKCIA.md
-   Kým sú hodnoty nevyplnené, stránka beží v obmedzenom režime
-   (funguje Ukážkový režim s lokálnym ukladaním).
+   KONFIGURÁCIA — len verejné hodnoty. Všetko citlivé (webhooky,
+   role, bot token) žije v Supabase Edge Function `web-api`.
    ================================================================ */
-const SUPABASE_URL     = "https://xguynguhxnxhrrebjnrw.supabase.co";
-const SUPABASE_ANON_KEY= "sb_publishable_rWdMnwGN5piUrwcMis9ioQ_bUPQJv0y";
-const DISCORD_GUILD_ID = "1323633405992112170";
-/* ID rolí, ktoré vidia internú časť (SOP, cenník, záznamy, dokumenty).
-   Pravý klik na rolu v nastaveniach serveru → Copy Role ID. Môže ich byť viac. */
-const INTERNAL_ROLE_IDS = ["1323683204464509031"];
-/* Discord webhooky: kanál → Upraviť kanál → Integrácie → Webhooky → Nový webhook → Copy URL */
-const WEBHOOK_OBJEDNAVKY = "https://discord.com/api/webhooks/1544040921853726740/McXXim0XDjWckzx8MkcGTWuPcinPsoDhS6oG3PCRPJ6zlx1RW24rPiq_Y-4fRxVvcB55"; // kanál #objednavky
-const WEBHOOK_ZAZNAMY    = "https://discord.com/api/webhooks/1544041034558742621/4X1Gi2ynJ2SsAJAIRw5A6zDFOWBSCoQLnytI7cZa9hSBEhkZYwT3n3Y9y3Vwk_7pVmpm";    // kanál #vyjazdy (voliteľné)
-const DISCORD_INVITE_URL = "DOPLN_DISCORD_POZVANKA";        // voliteľné — odkaz pre nečlenov na prihlasovacej obrazovke
+const SUPABASE_URL      = "https://xguynguhxnxhrrebjnrw.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_rWdMnwGN5piUrwcMis9ioQ_bUPQJv0y";
+const DISCORD_INVITE_URL = "DOPLN_DISCORD_POZVANKA"; // voliteľné — odkaz pre nečlenov
+const API_URL = SUPABASE_URL + "/functions/v1/web-api";
 /* ================================================================ */
 
 
@@ -1121,8 +1108,7 @@ function toggleTheme(){
 document.getElementById('themeToggleTop').addEventListener('click', toggleTheme);
 document.getElementById('themeToggleGate').addEventListener('click', toggleTheme);
 
-const configured = !SUPABASE_URL.startsWith("DOPLN");
-const sb = configured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const gate = document.getElementById('gate');
 const app = document.getElementById('app');
@@ -1140,93 +1126,76 @@ function copyText(text){
 }
 function showError(msg){ gateError.style.display='block'; gateError.textContent = msg; }
 
-function enterApp(name, avatarUrl, demo=false){
+function enterApp(name, avatarUrl){
   window.currentUserName = name;
-  setTimeout(updateOrdBadge, 400);
   document.getElementById('userName').textContent = name;
   const av = document.getElementById('userAvatar');
   if(avatarUrl){ av.src = avatarUrl; } else { av.style.display='none'; }
-  if(demo) document.getElementById('demoBanner').style.display='block';
   gate.style.display='none';
   app.style.display='block';
 }
 
-async function verifyGuildMembership(providerToken){
-  const res = await fetch('https://discord.com/api/users/@me/guilds', {
-    headers: { Authorization: `Bearer ${providerToken}` }
+/* --- API vrstva: všetky dáta idú cez Edge Function web-api (overuje prihlásenie aj rolu) --- */
+async function api(action, p){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session) throw new Error('Nie si prihlásený');
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + session.access_token,
+      'apikey': SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({ action, p: p || {} })
   });
-  if(!res.ok) throw new Error('Nepodarilo sa načítať zoznam serverov z Discordu.');
-  const guilds = await res.json();
-  return guilds.some(g => g.id === DISCORD_GUILD_ID);
+  let j = null;
+  try{ j = await res.json(); }catch(e){}
+  if(!res.ok || !j || !j.ok) throw new Error((j && j.error) || ('Chyba servera ' + res.status));
+  return j.data;
+}
+window.userRole = 'member';
+function isVet(){ return window.userRole === 'vet'; }
+
+function applyRoleVisibility(role){
+  window.userRole = role;
+  document.body.classList.toggle('internal-access', role === 'vet');
 }
 
-/* Zistí role člena na serveri (vyžaduje scope guilds.members.read) */
-async function fetchMemberRoles(providerToken){
-  try{
-    const res = await fetch(`https://discord.com/api/users/@me/guilds/${DISCORD_GUILD_ID}/member`, {
-      headers: { Authorization: `Bearer ${providerToken}` }
-    });
-    if(!res.ok) return [];
-    const member = await res.json();
-    return member.roles || [];
-  }catch(e){ return []; }
-}
-function applyRoleVisibility(roles){
-  const isInternal = roles.some(r => INTERNAL_ROLE_IDS.includes(r));
-  document.body.classList.toggle('internal-access', isInternal);
-}
-
+let sessionHandled = false;
 async function handleSession(session){
-  if(!session) return;
-  const providerToken = session.provider_token;
-  const meta = session.user.user_metadata || {};
-  const name = meta.full_name || meta.name || 'Člen';
-  const avatar = meta.avatar_url || '';
+  if(!session || sessionHandled) return;
+  sessionHandled = true;
   try{
-    if(!providerToken){
-      await sb.auth.signOut();
-      showError('Relácia vypršala, prihlás sa znova.');
-      return;
-    }
-    const isMember = await verifyGuildMembership(providerToken);
-    if(isMember){
-      const roles = await fetchMemberRoles(providerToken);
-      applyRoleVisibility(roles);
-      enterApp(name, avatar);
-      renderPatList();
-    }
-    else{
-      await sb.auth.signOut();
-      showError('Tento Discord účet nie je členom serveru VET ARK. Požiadaj o pozvánku a skús to znova.');
-    }
-  }catch(e){ showError(e.message); }
+    // server overí členstvo na serveri + rolu (cez bota) a vráti profil
+    const me = await api('me');
+    applyRoleVisibility(me.role);
+    enterApp(me.name, me.avatar);
+    renderArticles().then(()=> renderHomeTeasers());
+    renderDbPhotos().then(()=> renderHomeTeasers());
+    if(isVet()){ renderPatList(); updateOrdBadge(); }
+  }catch(e){
+    sessionHandled = false;
+    await sb.auth.signOut();
+    showError(e.message === 'NOT_MEMBER'
+      ? 'Tento Discord účet nie je členom serveru VET ARK. Požiadaj o pozvánku a skús to znova.'
+      : 'Prihlásenie zlyhalo: ' + e.message);
+  }
 }
 
 document.getElementById('btnLogin').addEventListener('click', async ()=>{
-  if(!configured){
-    showError('Panel ešte nie je nakonfigurovaný. Otvor HTML súbor a doplň SUPABASE_URL, SUPABASE_ANON_KEY a DISCORD_GUILD_ID podľa návodu.');
-    return;
-  }
   await sb.auth.signInWithOAuth({
     provider: 'discord',
-    options: { scopes: 'identify guilds guilds.members.read', redirectTo: window.location.origin + window.location.pathname, queryParams: { prompt: 'consent' } }
+    options: { scopes: 'identify', redirectTo: window.location.origin + window.location.pathname, queryParams: { scope: 'identify' } }
   });
 });
 
-document.getElementById('btnDemo').addEventListener('click', ()=>{
-  window.demoMode = true;
-  document.body.classList.add('internal-access');
-  enterApp('Ukážkový člen', '', true);
-});
 document.getElementById('btnLogout').addEventListener('click', async ()=>{
-  if(sb) await sb.auth.signOut();
+  await sb.auth.signOut();
   location.reload();
 });
 
-if(configured){
-  sb.auth.getSession().then(({data})=> handleSession(data.session));
-  sb.auth.onAuthStateChange((_e, session)=> handleSession(session));
-}
+sb.auth.getSession().then(({data})=> handleSession(data.session));
+sb.auth.onAuthStateChange((_e, session)=> handleSession(session));
 
 
 /* --- Galéria lightbox (delegovaný — funguje aj pre nové fotky) --- */
@@ -1254,12 +1223,7 @@ function artDate(d){ const dt = new Date(d); return isNaN(dt) ? '' : dt.toLocale
 function excerpt(b){ const first = (b||'').split(/\n\s*\n/)[0]; return first.length > 180 ? first.slice(0,180)+'…' : first; }
 
 async function fetchArticles(){
-  if(!configured) return [];
-  try{
-    const { data, error } = await sb.from('articles').select('*').order('created_at', {ascending:false});
-    if(error) throw error;
-    return data || [];
-  }catch(e){ return []; }
+  try{ return await api('articles.list'); }catch(e){ return []; }
 }
 let ALL_ARTICLES = [];
 async function renderArticles(){
@@ -1278,8 +1242,8 @@ document.getElementById('artList').addEventListener('click', async e=>{
   const del = e.target.closest('[data-delart]');
   if(del){
     if(!confirm('Zmazať tento článok?')) return;
-    const { error } = await sb.from('articles').delete().eq('id', del.dataset.delart);
-    if(error){ showToast('Zmazanie zlyhalo'); } else { showToast('Článok zmazaný'); renderArticles(); }
+    try{ await api('articles.delete', { id: del.dataset.delart }); showToast('Článok zmazaný'); renderArticles(); }
+    catch(e){ showToast('Zmazanie zlyhalo'); }
     return;
   }
   const card = e.target.closest('[data-art]');
@@ -1294,7 +1258,6 @@ document.querySelector('#reader .rd-close').addEventListener('click', ()=> docum
 document.getElementById('reader').addEventListener('click', e=>{ if(e.target.id==='reader') document.getElementById('reader').classList.remove('open'); });
 
 document.getElementById('artAdd').addEventListener('click', ()=>{
-  if(!configured){ showToast('Najprv pripoj Supabase podľa návodu'); return; }
   document.getElementById('artForm').classList.add('open');
   document.getElementById('artForm').scrollIntoView({behavior:'smooth'});
 });
@@ -1303,8 +1266,8 @@ document.getElementById('artSave').addEventListener('click', async ()=>{
   const title = document.getElementById('artTitle').value.trim();
   const body = document.getElementById('artBody').value.trim();
   if(!title || !body){ showToast('Doplň nadpis aj text'); return; }
-  const { error } = await sb.from('articles').insert({ title: title, body: body, author: window.currentUserName || 'Vet Ark' });
-  if(error){ showToast('Uloženie zlyhalo — skontroluj nastavenie databázy'); return; }
+  try{ await api('articles.create', { title, body }); }
+  catch(e){ showToast('Uloženie zlyhalo: ' + e.message); return; }
   document.getElementById('artTitle').value=''; document.getElementById('artBody').value='';
   document.getElementById('artForm').classList.remove('open');
   showToast('Článok uverejnený ✓');
@@ -1313,31 +1276,27 @@ document.getElementById('artSave').addEventListener('click', async ()=>{
 
 /* --- Fotky od členov --- */
 async function renderDbPhotos(){
-  if(!configured) return;
-  try{
-    const { data, error } = await sb.from('photos').select('*').order('created_at', {ascending:false});
-    if(error) throw error;
-    const gal = document.querySelector('.gal');
-    document.querySelectorAll('.gph[data-dbid]').forEach(n=>n.remove());
-    document.getElementById('galEmpty').style.display = (data&&data.length) ? 'none' : 'block';
-    document.querySelector('.tab[data-tab="galeria"]').classList.toggle('tab-nocontent', !(data&&data.length));
-    (data||[]).forEach(p=>{
-      const fig = document.createElement('figure');
-      fig.className = 'gph'; fig.dataset.dbid = p.id;
-      fig.innerHTML = '<button class="ph-del deletable" data-delph="'+p.id+'" title="Zmazať">×</button><img src="'+p.url+'" alt="" loading="lazy"><figcaption>'+esc(p.caption||'')+'</figcaption>';
-      gal.prepend(fig);
-    });
-  }catch(e){}
+  let data = [];
+  try{ data = await api('photos.list'); }catch(e){ data = []; }
+  const gal = document.querySelector('.gal');
+  document.querySelectorAll('.gph[data-dbid]').forEach(n=>n.remove());
+  document.getElementById('galEmpty').style.display = data.length ? 'none' : 'block';
+  document.querySelector('.tab[data-tab="galeria"]').classList.toggle('tab-nocontent', !data.length);
+  data.forEach(p=>{
+    const fig = document.createElement('figure');
+    fig.className = 'gph'; fig.dataset.dbid = p.id;
+    fig.innerHTML = '<button class="ph-del deletable" data-delph="'+p.id+'" title="Zmazať">×</button><img src="'+p.url+'" alt="" loading="lazy"><figcaption>'+esc(p.caption||'')+'</figcaption>';
+    gal.appendChild(fig);
+  });
 }
 document.addEventListener('click', async e=>{
   const del = e.target.closest('[data-delph]');
   if(!del) return;
   if(!confirm('Zmazať túto fotku?')) return;
-  const { error } = await sb.from('photos').delete().eq('id', del.dataset.delph);
-  if(error){ showToast('Zmazanie zlyhalo'); } else { showToast('Fotka zmazaná'); renderDbPhotos(); }
+  try{ await api('photos.delete', { id: del.dataset.delph }); showToast('Fotka zmazaná'); renderDbPhotos(); }
+  catch(e){ showToast('Zmazanie zlyhalo'); }
 });
 document.getElementById('phAdd').addEventListener('click', ()=>{
-  if(!configured){ showToast('Najprv pripoj Supabase podľa návodu'); return; }
   document.getElementById('phForm').classList.add('open');
   document.getElementById('phForm').scrollIntoView({behavior:'smooth'});
 });
@@ -1345,20 +1304,22 @@ document.getElementById('phCancel').addEventListener('click', ()=> document.getE
 document.getElementById('phSave').addEventListener('click', async ()=>{
   const file = document.getElementById('phFile').files[0];
   if(!file){ showToast('Vyber fotku'); return; }
-  if(file.size > 8*1024*1024){ showToast('Fotka je príliš veľká (max 8 MB)'); return; }
-  const path = Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const { error: upErr } = await sb.storage.from('gallery').upload(path, file);
-  if(upErr){ showToast('Nahranie zlyhalo — skontroluj bucket „gallery"'); return; }
-  const { data: pub } = sb.storage.from('gallery').getPublicUrl(path);
-  const { error } = await sb.from('photos').insert({ url: pub.publicUrl, caption: document.getElementById('phCap').value.trim(), author: window.currentUserName || 'Vet Ark' });
-  if(error){ showToast('Uloženie záznamu zlyhalo'); return; }
+  if(file.size > 4*1024*1024){ showToast('Fotka je príliš veľká (max 4 MB)'); return; }
+  const b64 = await new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(String(r.result).split(',')[1]);
+    r.onerror = ()=> rej(new Error('Čítanie súboru zlyhalo'));
+    r.readAsDataURL(file);
+  });
+  showToast('Nahrávam…');
+  try{
+    await api('photos.upload', { name: file.name, type: file.type, data: b64, caption: document.getElementById('phCap').value.trim() });
+  }catch(e){ showToast('Nahranie zlyhalo: ' + e.message); return; }
   document.getElementById('phFile').value=''; document.getElementById('phCap').value='';
   document.getElementById('phForm').classList.remove('open');
   showToast('Fotka pridaná ✓');
   renderDbPhotos();
 });
-renderArticles().then(()=> renderHomeTeasers());
-renderDbPhotos().then(()=> renderHomeTeasers());
 
 
 
@@ -1379,17 +1340,6 @@ document.querySelectorAll('.tab').forEach(t=>{
 
 
 
-/* --- Discord webhook --- */
-async function sendWebhook(url, text){
-  const res = await fetch(url, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ content: text })
-  });
-  if(!res.ok) throw new Error('Webhook zlyhal (' + res.status + ')');
-}
-const webhookOrdersReady = !WEBHOOK_OBJEDNAVKY.startsWith('DOPLN');
-const webhookRecordsReady = !WEBHOOK_ZAZNAMY.startsWith('DOPLN');
 
 /* --- Objednávky (zákaznícka časť) --- */
 const KONTROLY = [
@@ -1427,12 +1377,10 @@ document.querySelectorAll('[data-hero]').forEach(b=>{
   b.addEventListener('click', ()=> openBooking(
     b.dataset.hero === 'kontrola' ? 'Kontrola' : b.dataset.hero === 'zakrok' ? 'Zákrok' : 'Správa'));
 });
-document.getElementById('bGen').addEventListener('click', ()=>{
+document.getElementById('bGen').addEventListener('click', async ()=>{
   const v = id => document.getElementById(id).value.trim();
-  const now = new Date();
-  const dt = now.toLocaleDateString('sk-SK') + ' ' + now.toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'});
   const isMsg = bookingKind === 'Správa';
-  dbAddOrder({
+  const order = {
     kind: bookingKind,
     meno: v('bName'), kontakt: v('bContact'),
     milacik: isMsg ? '' : v('bPet'),
@@ -1440,39 +1388,17 @@ document.getElementById('bGen').addEventListener('click', ()=>{
     cas: isMsg ? '' : v('bWhen'),
     miesto: isMsg ? '' : v('bPlace'),
     poznamka: v('bNote')
-  }).then(()=> updateOrdBadge());
-  const text = isMsg
-? `**VET ARK — Správa od klienta**
-📅 Odoslané: ${dt}
-🙍 Klient: ${v('bName') || '—'}
-📞 Kontakt: ${v('bContact') || '—'}
-💬 Správa: ${v('bNote') || '—'}`
-: `**VET ARK — Objednávka: ${bookingKind}**
-📅 Odoslané: ${dt}
-🙍 Klient: ${v('bName') || '—'}
-📞 Kontakt: ${v('bContact') || '—'}
-🐾 Miláčik: ${v('bPet') || '—'}
-🩺 Typ: ${document.getElementById('bType').value}
-🕐 Preferovaný čas: ${v('bWhen') || 'podľa dohody'}
-📍 Miesto: ${v('bPlace') || '—'}
-📝 Poznámka: ${v('bNote') || '—'}`;
-  document.getElementById('bText').textContent = text;
-  if(webhookOrdersReady){
-    sendWebhook(WEBHOOK_OBJEDNAVKY, text)
-      .then(()=>{
-        showToast(bookingKind==='Správa' ? 'Správa odoslaná ✓ Ozveme sa vám.' : 'Objednávka odoslaná ✓ Ozveme sa s termínom.');
-        document.getElementById('bOut').style.display = 'none';
-      })
-      .catch(()=>{
-        showToast('Odoslanie zlyhalo — skopíruj objednávku ručne');
-        document.getElementById('bOut').style.display = 'block';
-      });
-  }else{
-    document.getElementById('bOut').style.display = 'block';
+  };
+  if(!order.meno){ showToast('Doplň meno klienta'); return; }
+  try{
+    await api('orders.create', order);
+    showToast(isMsg ? 'Správa odoslaná ✓ Ozveme sa vám.' : 'Objednávka odoslaná ✓ Ozveme sa s termínom.');
+    ['bName','bContact','bPet','bWhen','bPlace','bNote'].forEach(id=> document.getElementById(id).value='');
+    document.getElementById('booking').classList.remove('open');
+    if(isVet()) updateOrdBadge();
+  }catch(e){
+    showToast('Odoslanie zlyhalo: ' + e.message);
   }
-});
-document.getElementById('bCopy').addEventListener('click', ()=>{
-  copyText(document.getElementById('bText').textContent);
 });
 /* dlaždice → prepnutie záložky */
 document.querySelectorAll('[data-goto]').forEach(t=>{
@@ -1530,37 +1456,11 @@ document.getElementById('homeArt').addEventListener('click', ()=>{
 });
 
 
-/* ================= ŽIADOSTI ================= */
-const LS_ORD = 'vetark_orders';
-function loadOrdsLS(){ try{ return JSON.parse(localStorage.getItem(LS_ORD)) || []; }catch(e){ return []; } }
-function saveOrdsLS(o){ localStorage.setItem(LS_ORD, JSON.stringify(o)); }
-async function dbOrders(){
-  if(useLocal()) return loadOrdsLS().slice().reverse();
-  const { data, error } = await sb.from('orders').select('*').order('created_at', {ascending:false});
-  return error ? [] : (data || []);
-}
-async function dbAddOrder(o){
-  if(useLocal()){
-    const all = loadOrdsLS();
-    all.push({ ...o, id: Date.now(), created_at: new Date().toISOString(), status:'nova' });
-    saveOrdsLS(all); return true;
-  }
-  const { error } = await sb.from('orders').insert({ ...o, status:'nova' });
-  return !error;
-}
-async function dbOrderStatus(id, status){
-  if(useLocal()){
-    const all = loadOrdsLS(); const o = all.find(x=>String(x.id)===String(id));
-    if(o){ o.status = status; saveOrdsLS(all); } return true;
-  }
-  const { error } = await sb.from('orders').update({ status }).eq('id', id);
-  return !error;
-}
-async function dbDeleteOrder(id){
-  if(useLocal()){ saveOrdsLS(loadOrdsLS().filter(x=>String(x.id)!==String(id))); return true; }
-  const { error } = await sb.from('orders').delete().eq('id', id);
-  return !error;
-}
+/* ================= ŽIADOSTI (cez API, len veterinár) ================= */
+async function dbOrders(){ try{ return await api('orders.list'); }catch(e){ return []; } }
+async function dbAddOrder(o){ return api('orders.create', o); }
+async function dbOrderStatus(id, status){ try{ await api('orders.status', { id, status }); return true; }catch(e){ return false; } }
+async function dbDeleteOrder(id){ try{ await api('orders.delete', { id }); return true; }catch(e){ return false; } }
 const ORD_KIND_CLASS = { 'Kontrola':'kontrola', 'Zákrok':'zakrok', 'Správa':'karta' };
 function ordDate(d){ const t = new Date(d); return isNaN(t) ? '' : t.toLocaleDateString('sk-SK') + ' ' + t.toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'}); }
 async function renderOrders(){
@@ -1597,6 +1497,7 @@ document.getElementById('ordList').addEventListener('click', async e=>{
 });
 document.querySelector('.tab[data-tab="ziadosti"]').addEventListener('click', renderOrders);
 async function updateOrdBadge(){
+  if(!isVet()) return;
   const ords = await dbOrders();
   const n = ords.filter(o=>o.status !== 'vybavena').length;
   const b = document.getElementById('ordBadge');
@@ -1605,37 +1506,11 @@ async function updateOrdBadge(){
 }
 
 
-/* ================= KALENDÁR ================= */
-const LS_EV = 'vetark_events';
-function loadEvsLS(){ try{ return JSON.parse(localStorage.getItem(LS_EV)) || []; }catch(e){ return []; } }
-function saveEvsLS(v){ localStorage.setItem(LS_EV, JSON.stringify(v)); }
-async function dbEvents(){
-  if(useLocal()) return loadEvsLS();
-  const { data, error } = await sb.from('events').select('*');
-  return error ? [] : (data || []);
-}
-async function dbAddEvent(ev){
-  if(useLocal()){
-    const all = loadEvsLS(); const e2 = { ...ev, id: Date.now() };
-    all.push(e2); saveEvsLS(all); return e2;
-  }
-  const { data, error } = await sb.from('events').insert({ ...ev, author: window.currentUserName || 'Vet Ark' }).select().single();
-  return error ? null : data;
-}
-async function dbUpdateEvent(id, ev){
-  if(useLocal()){
-    const all = loadEvsLS(); const i = all.findIndex(x=>String(x.id)===String(id));
-    if(i>-1) all[i] = { ...all[i], ...ev };
-    saveEvsLS(all); return true;
-  }
-  const { error } = await sb.from('events').update(ev).eq('id', id);
-  return !error;
-}
-async function dbDeleteEvent(id){
-  if(useLocal()){ saveEvsLS(loadEvsLS().filter(x=>String(x.id)!==String(id))); return true; }
-  const { error } = await sb.from('events').delete().eq('id', id);
-  return !error;
-}
+/* ================= KALENDÁR (cez API, len veterinár) ================= */
+async function dbEvents(){ try{ return await api('events.list'); }catch(e){ return []; } }
+async function dbAddEvent(ev){ try{ return await api('events.create', ev); }catch(e){ showToast('Uloženie zlyhalo'); return null; } }
+async function dbUpdateEvent(id, ev){ try{ await api('events.update', { id, ...ev }); return true; }catch(e){ showToast('Uloženie zlyhalo'); return false; } }
+async function dbDeleteEvent(id){ try{ await api('events.delete', { id }); return true; }catch(e){ return false; } }
 const CAL_H0 = 7, CAL_H1 = 22, CAL_CELL = 36;
 function mondayOf(d){
   const x = new Date(d); x.setHours(0,0,0,0);
@@ -1790,7 +1665,6 @@ document.getElementById('evDelete').addEventListener('click', async ()=>{
 });
 
 /* --- Kartotéka pacientov (Supabase; lokálny fallback pre ukážkový režim) --- */
-const LS_PAT = 'vetark_patients';
 const LS_DOC = 'vetark_doctor';
 const docInput = document.getElementById('doctorName');
 docInput.value = localStorage.getItem(LS_DOC) || 'Marcus John Hickman D.V.M.';
@@ -1798,106 +1672,15 @@ docInput.addEventListener('input', ()=> localStorage.setItem(LS_DOC, docInput.va
 function docName(){ return (localStorage.getItem(LS_DOC)||'Marcus John Hickman D.V.M.').trim() || 'Marcus John Hickman D.V.M.'; }
 function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 
-const useLocal = ()=> (!configured || window.demoMode === true);
-
-/* lokálne úložisko (ukážkový režim / nenakonfigurovaná stránka) */
-function loadPatsLS(){
-  try{
-    const p = JSON.parse(localStorage.getItem(LS_PAT)) || [];
-    p.forEach((x,i)=>{ if(!x.id) x.id = 'L' + i + '-' + Date.now(); if(!Array.isArray(x.records)) x.records = []; });
-    return p;
-  }catch(e){ return []; }
-}
-function savePatsLS(p){ localStorage.setItem(LS_PAT, JSON.stringify(p)); }
-
-/* dátová vrstva */
-async function dbPatients(){
-  if(useLocal()){
-    return loadPatsLS().map(x=>({ ...x, recCount:(x.records||[]).length }));
-  }
-  const { data: pats, error } = await sb.from('patients').select('*').order('created_at', {ascending:true});
-  if(error){ showToast('Načítanie pacientov zlyhalo — skontroluj databázu'); return []; }
-  const { data: recs } = await sb.from('records').select('id,patient_id');
-  const cnt = {};
-  (recs||[]).forEach(r=>{ cnt[r.patient_id] = (cnt[r.patient_id]||0) + 1; });
-  return (pats||[]).map(p=>({ ...p, recCount: cnt[p.id]||0 }));
-}
-async function dbRecords(p){
-  if(useLocal()){
-    const f = loadPatsLS().find(x=>String(x.id)===String(p.id));
-    return f ? [...f.records] : [];
-  }
-  const { data, error } = await sb.from('records').select('*').eq('patient_id', p.id).order('created_at', {ascending:true});
-  if(error){ showToast('Načítanie záznamov zlyhalo'); return []; }
-  return data || [];
-}
-async function dbCreatePatient(base){
-  if(useLocal()){
-    const pats = loadPatsLS();
-    const p = { ...base, id:'L'+Date.now(), records:[] };
-    pats.push(p); savePatsLS(pats);
-    return p;
-  }
-  const { data, error } = await sb.from('patients').insert(base).select().single();
-  if(error){ showToast('Uloženie pacienta zlyhalo'); return null; }
-  return data;
-}
-async function dbUpdatePatient(id, base){
-  if(useLocal()){
-    const pats = loadPatsLS();
-    const i = pats.findIndex(x=>String(x.id)===String(id));
-    if(i>-1){ pats[i] = { ...base, id, records: pats[i].records }; savePatsLS(pats); }
-    return true;
-  }
-  const { error } = await sb.from('patients').update(base).eq('id', id);
-  if(error){ showToast('Uloženie zlyhalo'); return false; }
-  return true;
-}
-async function dbDeletePatient(id){
-  if(useLocal()){
-    const pats = loadPatsLS().filter(x=>String(x.id)!==String(id));
-    savePatsLS(pats); return true;
-  }
-  const { error } = await sb.from('patients').delete().eq('id', id);
-  if(error){ showToast('Zmazanie zlyhalo'); return false; }
-  return true;
-}
-async function dbAddRecord(patientId, rec){
-  if(useLocal()){
-    const pats = loadPatsLS();
-    const p = pats.find(x=>String(x.id)===String(patientId));
-    if(!p) return null;
-    const r = { ...rec, id: Date.now() };
-    p.records.push(r); savePatsLS(pats);
-    return r;
-  }
-  const { data, error } = await sb.from('records').insert({ patient_id: patientId, ...rec, author: window.currentUserName || 'Vet Ark' }).select().single();
-  if(error){ showToast('Uloženie záznamu zlyhalo'); return null; }
-  return data;
-}
-async function dbUpdateRecord(patientId, recId, text){
-  if(useLocal()){
-    const pats = loadPatsLS();
-    const p = pats.find(x=>String(x.id)===String(patientId));
-    const r = p && p.records.find(x=>String(x.id)===String(recId));
-    if(r){ r.text = text; savePatsLS(pats); }
-    return true;
-  }
-  const { error } = await sb.from('records').update({ text }).eq('id', recId);
-  if(error){ showToast('Uloženie zlyhalo'); return false; }
-  return true;
-}
-async function dbDeleteRecord(patientId, recId){
-  if(useLocal()){
-    const pats = loadPatsLS();
-    const p = pats.find(x=>String(x.id)===String(patientId));
-    if(p){ p.records = p.records.filter(x=>String(x.id)!==String(recId)); savePatsLS(pats); }
-    return true;
-  }
-  const { error } = await sb.from('records').delete().eq('id', recId);
-  if(error){ showToast('Zmazanie zlyhalo'); return false; }
-  return true;
-}
+/* dátová vrstva kartotéky — všetko cez API (server overuje rolu veterinára) */
+async function dbPatients(){ try{ return await api('patients.list'); }catch(e){ return []; } }
+async function dbRecords(p){ try{ return await api('records.list', { patient_id: p.id }); }catch(e){ showToast('Načítanie záznamov zlyhalo'); return []; } }
+async function dbCreatePatient(base){ try{ return await api('patients.create', base); }catch(e){ showToast('Uloženie pacienta zlyhalo'); return null; } }
+async function dbUpdatePatient(id, base){ try{ await api('patients.update', { id, ...base }); return true; }catch(e){ showToast('Uloženie zlyhalo'); return false; } }
+async function dbDeletePatient(id){ try{ await api('patients.delete', { id }); return true; }catch(e){ showToast('Zmazanie zlyhalo'); return false; } }
+async function dbAddRecord(patientId, rec){ try{ return await api('records.create', { patient_id: patientId, ...rec }); }catch(e){ showToast('Uloženie záznamu zlyhalo'); return null; } }
+async function dbUpdateRecord(patientId, recId, text){ try{ await api('records.update', { id: recId, text }); return true; }catch(e){ showToast('Uloženie zlyhalo'); return false; } }
+async function dbDeleteRecord(patientId, recId){ try{ await api('records.delete', { id: recId }); return true; }catch(e){ showToast('Zmazanie zlyhalo'); return false; } }
 
 /* šablóny */
 function skDate(){ const d=new Date(); return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); }
@@ -2274,7 +2057,7 @@ function openEditor(p, type, recId, textExisting){
     document.getElementById('edText').value = textExisting || '';
     document.getElementById('edText').style.display = 'block';
   }
-  document.getElementById('edSend').style.display = webhookRecordsReady ? 'inline-block' : 'none';
+  document.getElementById('edSend').style.display = 'inline-block';
   document.getElementById('edDelete').style.display = recId ? 'inline-block' : 'none';
   document.getElementById('editor').classList.add('open');
 }
@@ -2301,7 +2084,7 @@ document.getElementById('edSave').addEventListener('click', async ()=>{
 });
 document.getElementById('edCopy').addEventListener('click', ()=> copyText(document.getElementById('edText').value));
 document.getElementById('edSend').addEventListener('click', ()=>{
-  sendWebhook(WEBHOOK_ZAZNAMY, document.getElementById('edText').value)
+  api('records.send', { text: document.getElementById('edText').value })
     .then(()=> showToast('Záznam odoslaný ✓'))
     .catch(()=> showToast('Odoslanie zlyhalo — použi kopírovanie'));
 });
@@ -2317,7 +2100,6 @@ document.getElementById('edDelete').addEventListener('click', async ()=>{
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeEditor(); });
 
 openPatForm(null);
-renderPatList();
 
 /* --- Cenník kalkulačka --- */
 const fmt = n => '$ ' + n.toLocaleString('sk-SK');
