@@ -2110,7 +2110,7 @@ document.getElementById('edSend').addEventListener('click', async ()=>{
   if(!/^\d{15,25}$/.test(chId)){ showToast('Zadaj ID Discord kanála (len číslice)'); return; }
   try{
     showToast('Odosielam…');
-    await api('records.post', { channel_id: chId, text });
+    await api('records.post', { channel_id: chId, text, title: (edCtx ? (REC_LABEL[edCtx.type] + ' — ' + (edCtx.p.meno||'')) : 'Záznam'), kind: edCtx ? edCtx.type : '' });
     rememberChannel(chId, chName);
     showToast('Záznam odoslaný do kanála ✓');
   }catch(e){
