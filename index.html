@@ -1724,14 +1724,14 @@ function FIELDS_VITALS(){ return [
 function FIELDS_FOR(type, p){
   const s = sex(p);
   const closing = [
-    ['doplnenie','Doplnenie k správe (voliteľné — pripíše sa na koniec)','','ta'],
+    ['doplnenie','🗒️ Doplnenie — voliteľná poznámka, zobrazí sa až na konci záznamu (NIE správanie)','','ta'],
     ['vypisal','Vypísal (meno, D.V.M.)', docName()],
     ['datum_vypisu','Dátum vypísania', todayStr()],
   ];
   if(type === 'karta') return [
     ['datum_reg','Dátum registrácie', todayStr()],
   ].concat(FIELDS_VITALS(), [
-    ['spravanie','Správanie', s.kto + ' je ' + s.vnimavy + '. Nejaví známky nadmernej agresie, svojho pána si chráni.','ta'],
+    ['spravanie','🐾 Správanie — prepíš vlastným popisom (ide do sekcie Správanie)', s.kto + ' je ' + s.vnimavy + '. Nejaví známky nadmernej agresie, svojho pána si chráni.','ta'],
     ['datum_cip','Dátum čipovania / kontroly čipu', todayStr()],
     ['cip_veta','Čipovanie — veta (bez dátumu)', s.komu + ' bol skontrolovaný certifikovaný čip'],
     ['ockovanie','Očkovacia správa (text alebo „čakám na doplnenie")','čakám na doplnenie','ta'],
@@ -2112,7 +2112,7 @@ document.getElementById('edSend').addEventListener('click', async ()=>{
   if(!/^\d{15,25}$/.test(chId)){ showToast('Zadaj ID Discord kanála (len číslice)'); return; }
   try{
     showToast('Odosielam…');
-    await api('records.post', { channel_id: chId, text, title: (edCtx ? (REC_LABEL[edCtx.type] + ' — ' + (edCtx.p.meno||'')) : 'Záznam'), kind: edCtx ? edCtx.type : '' });
+    await api('records.post', { channel_id: chId, text, title: (edCtx ? (REC_LABEL[edCtx.type] + ' — ' + (edCtx.p.meno||'')) : 'Záznam'), kind: edCtx ? edCtx.type : '', patient_id: edCtx ? edCtx.p.id : '' });
     rememberChannel(chId, chName);
     showToast('Záznam odoslaný do kanála ✓');
   }catch(e){
