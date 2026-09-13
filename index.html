@@ -1763,7 +1763,7 @@ function footer(v){
   const m = (v && v.vypisal) || docName();
   return SEPL + '\n## Vypísané dňa ' + d + ' ' + m;
 }
-function doplnenie(v){ return (v && v.doplnenie) ? v.doplnenie + '\n' : ''; }
+function doplnenie(v){ return (v && v.doplnenie && v.doplnenie.trim()) ? SEP + '\n`Doplnenie`\n\n' + v.doplnenie.trim() + '\n\n' : ''; }
 function tplKarta(p, v){
   const s = sex(p);
   let t = '`Zaregistrovaný ' + v.datum_reg + '`\n';
