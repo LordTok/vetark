@@ -1756,7 +1756,7 @@ function vitalsBlock(v){
     '\nHmotnosť: ' + v.hmotnost + 'kg\nTeplota: ' + v.teplota + '°C\n```';
 }
 function labBlock(v){
-  return '**DKK **\n```\n(Dysplázia klbov): ' + v.dkk + '\n```\n**Hematológia:** - ' + v.hemat + '\n**Biochémia:** - ' + v.bioch;
+  return '**DKK **\n```\n(Dysplázia klbov): ' + v.dkk + '\n```\n```\nHematológia: ' + v.hemat + '\nBiochémia: ' + v.bioch + '\n```';
 }
 function footer(v){
   const d = (v && v.datum_vypisu) || skDate();
@@ -1771,10 +1771,12 @@ function tplKarta(p, v){
   t += SEP + '\n' + dataBlock(p) + '\n' + SEP + '\n';
   t += '`Vstupná lekárska správa`\n\n';
   t += '**' + s.kto + ' ' + s.bol + ' ' + s.podrobeny + ' vstupnej lekárskej prehliadke dňa ' + v.datum + '.**\n';
-  t += vitalsBlock(v) + '\n' + labBlock(v) + '\n\n';
-  t += '**' + v.spravanie + '** \n' + SEP + '\n';
+  t += vitalsBlock(v) + '\n\n';
+  t += '**' + v.spravanie + '**\n\n';
+  t += labBlock(v) + '\n' + SEP + '\n';
   t += '`Čipovanie`\n\n';
-  t += '**' + v.cip_veta + ' dňa ' + v.datum_cip + '. Pri priložení čítačky sa zobrazia informácie o majiteľovi, telefónny kontakt, adresa a meno zvieraťa a číslo čipu.**\n\n';
+  t += '**' + v.cip_veta + ' dňa ' + v.datum_cip + '.**\n\n';
+  t += 'Zobrazované informácie na čipe:\n';
   t += '```\nMajiteľ: ' + (p.majitel||'') + '\nTel. kontakt: ' + (p.tel||'') + '\nAdresa: ' + (p.adresa||'') + '\nMeno zvieraťa: ' + (p.meno||'') + '\nČíslo čipu: ' + (p.cip||'') + '\n```\n' + SEP + '\n';
   const ock = (v.ockovanie || '').trim();
   t += '`Očkovacia správa`' + (ock.includes('\n') ? '\n' + ock : ' - ' + ock) + '\n\n';
