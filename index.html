@@ -1014,10 +1014,14 @@ html[data-theme="dark"] .c-day.weekend{background:rgba(255,255,255,.02)}
     <div class="form-grid ed-form" id="edForm"></div>
     <button class="btn-gen" id="edGen" style="margin-top:14px">Vygenerovať náhľad správy</button>
     <textarea id="edText" spellcheck="false"></textarea>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="field"><label for="edChannel">Discord kanál (ID) — kam má bot záznam poslať</label><input id="edChannel" list="edChannelList" placeholder="napr. 1546234981884625016"><datalist id="edChannelList"></datalist></div>
+      <div class="field"><label for="edChannelName">Názov kanála (voliteľné, na zapamätanie)</label><input id="edChannelName" placeholder="napr. #zaznamy-psy"></div>
+    </div>
     <div class="rbtns">
       <button class="btn-gen" id="edSave" style="margin-top:0">Uložiť do karty</button>
       <button class="btn-copy" id="edCopy" style="background:var(--charcoal)">Kopírovať</button>
-      <button class="btn-copy" id="edSend" style="display:none">Odoslať do Discordu</button>
+      <button class="btn-copy" id="edSend">Odoslať do Discordu (bot)</button>
       <button class="pbtn del" id="edDelete" style="display:none;padding:10px 16px">Zmazať záznam</button>
     </div>
   </div>
@@ -1686,10 +1690,10 @@ async function dbDeleteRecord(patientId, recId){ try{ await api('records.delete'
 function skDate(){ const d=new Date(); return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); }
 function sex(p){
   const f = p.pohlavie === 'Fena';
-  return { kto:f?'Fena':'Pes', ktoV:f?'Fenka':'Pes', bol:f?'bola':'bol',
+  return { kto:f?'Fena':'Pes', ktoV:f?'Fenka':'Pes', komu:f?'Fene':'Psovi', bol:f?'bola':'bol',
     podrobeny:f?'podrobená':'podrobený', cipovany:f?'čipovaná':'čipovaný',
     ockovany:f?'očkovaná':'očkovaný', odcerveny:f?'odčervená':'odčervený',
-    osetreny:f?'ošetrená':'ošetrený', vnimavy:f?'vnímavá hravá':'vnímavý hravý' };
+    osetreny:f?'ošetrená':'ošetrený', vnimavy:f?'vnímavá, hravá':'vnímavý, hravý' };
 }
 const SEP = '--------------------------------------------------------------------------';
 const SEPL = '--------------------------------------------------------------------------------------------------------------------------------------------';
@@ -1703,7 +1707,7 @@ function todayStr(){ return skDate(); }
 function FIELDS_VITALS(){ return [
   ['datum','Dátum prehliadky', todayStr()],
   ['tep','Tep','Bez abnormalít'],
-  ['selest','Šelest na srdci','Žiadna'],
+  ['selest','Šelest na srdci','Bez nálezu'],
   ['plucne','Pľúcne a dýchacie cesty','Čisté, bez šelestov'],
   ['brucho','Brucho','Bez nálezu, bez abnormalít'],
   ['chrup','Chrup','Bez nálezu, bez abnormalít'],
@@ -1712,9 +1716,7 @@ function FIELDS_VITALS(){ return [
   ['srst','Srsť','Lesklá a susediaca - bez abnormalít'],
   ['vyziva','Výživa','V poriadku, bez abnormalít'],
   ['hmotnost','Hmotnosť (kg)',''],
-  ['hmot_stav','Hmotnosť — hodnotenie','v norme'],
   ['teplota','Teplota (°C)','37,5'],
-  ['tepl_stav','Teplota — hodnotenie','v norme'],
   ['dkk','DKK (Dysplázia kĺbov)','Bez nálezu'],
   ['hemat','Hematológia','Bez nálezu, bez abnormalít. Hodnoty v norme'],
   ['bioch','Biochémia','Bez nálezu, bez abnormalít. Hodnoty v norme'],
@@ -1726,13 +1728,13 @@ function FIELDS_FOR(type, p){
     ['vypisal','Vypísal (meno, D.V.M.)', docName()],
     ['datum_vypisu','Dátum vypísania', todayStr()],
   ];
-  if(type === 'karta') return FIELDS_VITALS().concat([
-    ['spravanie','Správanie', s.kto + ' je ' + s.vnimavy + ' a na podnety reaguje primerane. Žiadne abnormality či výkyvy správania neboli pozorované.','ta'],
-    ['datum_cip','Dátum čipovania', todayStr()],
-    ['vek1','1. vakcína DHPPi — vek (týždne)','8'],
-    ['vek2','2. vakcína DHPPiL — vek (týždne)','12'],
-    ['vek3','3. vakcína DHPPiL + R — vek (týždne)','15'],
-    ['odcervenie','Odčervenie', s.kto + ' ' + s.bol + ' ' + s.odcerveny + ' proti oblým červom - škrkavkám.','ta'],
+  if(type === 'karta') return [
+    ['datum_reg','Dátum registrácie', todayStr()],
+  ].concat(FIELDS_VITALS(), [
+    ['spravanie','Správanie', s.kto + ' je ' + s.vnimavy + '. Nejaví známky nadmernej agresie, svojho pána si chráni.','ta'],
+    ['datum_cip','Dátum čipovania / kontroly čipu', todayStr()],
+    ['cip_veta','Čipovanie — veta (bez dátumu)', s.komu + ' bol skontrolovaný certifikovaný čip'],
+    ['ockovanie','Očkovacia správa (text alebo „čakám na doplnenie")','čakám na doplnenie','ta'],
   ], closing);
   if(type === 'kontrola') return FIELDS_VITALS().concat([
     ['rozdiely','Zaznamenané rozdiely','','ta'],
@@ -1748,51 +1750,43 @@ function FIELDS_FOR(type, p){
   ].concat(closing);
 }
 function vitalsBlock(v){
-  return '```\nTep: ' + v.tep + '\nŠelest na srdci: ' + v.selest + ' \nPlúcne a dýchacie cesty: ' + v.plucne +
+  return '```\nTep: ' + v.tep + '\nŠelest na srdci: ' + v.selest + '\nPlúcne a dýchacie cesty: ' + v.plucne +
     '\nBrucho: ' + v.brucho + '\nChrup: ' + v.chrup + '\nÚstna dutina: ' + v.ustna +
     '\nŇufák: ' + v.nufak + '\nSrsť: ' + v.srst + '\nVýživa: ' + v.vyziva +
-    '\nHmotnosť: ' + v.hmotnost + ' kg - ' + v.hmot_stav + '\nTeplota: ' + v.teplota + ' °C - ' + v.tepl_stav + '\n```';
+    '\nHmotnosť: ' + v.hmotnost + 'kg\nTeplota: ' + v.teplota + '°C\n```';
 }
 function labBlock(v){
-  return '**DKK**\n```\n(Dysplázia klbov):** ' + v.dkk + '\n```\n**Hematológia:** ' + v.hemat + '\n**Biochémia:** ' + v.bioch;
+  return '**DKK **\n```\n(Dysplázia klbov): ' + v.dkk + '\n```\n**Hematológia:** - ' + v.hemat + '\n**Biochémia:** - ' + v.bioch;
 }
 function footer(v){
   const d = (v && v.datum_vypisu) || skDate();
   const m = (v && v.vypisal) || docName();
-  return SEPL + '\nVypísal dňa ' + d + ' ' + m;
+  return SEPL + '\n## Vypísané dňa ' + d + ' ' + m;
 }
 function doplnenie(v){ return (v && v.doplnenie) ? v.doplnenie + '\n' : ''; }
 function tplKarta(p, v){
   const s = sex(p);
-  let t = '';
-  if(p.sluzobne) t += '`Zaregistrovaný ako službu konajúce zviera u S.O.S./ E.M.R.S.`\n' + SEP + '\n';
-  t += dataBlock(p) + '\n' + SEP + '\n';
-  t += '`Vstupná lekárska správa`\n**' + s.kto + ' ' + s.bol + ' ' + s.podrobeny + ' vstupnej lekárskej prehliadke dňa ' + v.datum + '.**\n';
-  t += vitalsBlock(v) + '\n' + labBlock(v) + '\n';
-  t += '**' + v.spravanie + '**\n' + SEP + '\n';
-  t += '`Čipovanie`\n**' + s.kto + ' ' + s.bol + ' ' + s.cipovany + ' dňa ' + v.datum_cip + '. Pri priložení čítačky sa zobrazia informácie o majiteľovi, telefónny kontakt, adresa a meno zvieraťa a číslo čipu.**\n';
+  let t = '`Zaregistrovaný ' + v.datum_reg + '`\n';
+  if(p.sluzobne) t += '`Zaregistrovaný ako službu konajúce zviera u S.O.S./ E.M.R.S.`\n';
+  t += SEP + '\n' + dataBlock(p) + '\n' + SEP + '\n';
+  t += '`Vstupná lekárska správa`\n\n';
+  t += '**' + s.kto + ' ' + s.bol + ' ' + s.podrobeny + ' vstupnej lekárskej prehliadke dňa ' + v.datum + '.**\n';
+  t += vitalsBlock(v) + '\n' + labBlock(v) + '\n\n';
+  t += '**' + v.spravanie + '** \n' + SEP + '\n';
+  t += '`Čipovanie`\n\n';
+  t += '**' + v.cip_veta + ' dňa ' + v.datum_cip + '. Pri priložení čítačky sa zobrazia informácie o majiteľovi, telefónny kontakt, adresa a meno zvieraťa a číslo čipu.**\n\n';
   t += '```\nMajiteľ: ' + (p.majitel||'') + '\nTel. kontakt: ' + (p.tel||'') + '\nAdresa: ' + (p.adresa||'') + '\nMeno zvieraťa: ' + (p.meno||'') + '\nČíslo čipu: ' + (p.cip||'') + '\n```\n' + SEP + '\n';
-  t += '`Očkovacia správa`\n';
-  t += '**' + s.ktoV + ' ' + s.bol + ' ' + s.ockovany + ' kombinovanou vakcínou DHPPi vo veku ' + v.vek1 + ' týždňov.**\n';
-  t += '**' + s.ktoV + ' ' + s.bol + ' ' + s.ockovany + ' kombinovanou vakcínou DHPPiL vo veku ' + v.vek2 + ' týždňov.**\n';
-  t += '**' + s.ktoV + ' ' + s.bol + ' ' + s.ockovany + ' kombinovanou vakcínou DHPPiL + R vo veku ' + v.vek3 + ' týždňov.**\n';
-  t += '**Vakcinácia zahŕňala nasledujúce ochorenia:**\n';
-  t += '                            Psinka (D – distemper)\n';
-  t += '                            Parvoviróza (P – parvovirus)\n';
-  t += '                            Infekčná hepatitída (A – adenovirus alebo H – hepatitis)\n';
-  t += '                            Parainfluenza (Pi – parainfluenza)\n';
-  t += '                            Leptospiróza (L – leptospirosis)\n';
-  t += '                            Vzteklina (R – rabies)\n';
-  t += '**' + v.odcervenie + '**\n';
+  const ock = (v.ockovanie || '').trim();
+  t += '`Očkovacia správa`' + (ock.includes('\n') ? '\n' + ock : ' - ' + ock) + '\n\n';
   t += doplnenie(v);
   t += footer(v);
   return t;
 }
 function tplKontrola(p, v){
   const s = sex(p);
-  let t = '`Lekárska správa z kontrolnej prehliadky`\n';
+  let t = '`Lekárska správa z kontrolnej prehliadky`\n\n';
   t += '**' + s.kto + ' ' + s.bol + ' ' + s.podrobeny + ' kontrolnej prehliadke dňa ' + v.datum + '.**\n';
-  t += vitalsBlock(v) + '\n' + labBlock(v) + '\n';
+  t += vitalsBlock(v) + '\n' + labBlock(v) + '\n\n';
   t += '`Zaznamenané rozdiely`\n' + (v.rozdiely || '') + '\n';
   t += doplnenie(v);
   t += footer(v);
@@ -1800,7 +1794,7 @@ function tplKontrola(p, v){
 }
 function tplZakrok(p, v){
   const s = sex(p);
-  let t = '`Lekárska správa zákroku`\n';
+  let t = '`Lekárska správa zákroku`\n\n';
   t += '**' + s.kto + ' ' + s.bol + ' ' + s.osetreny + ' dňa ' + v.datum_os + '.**\n';
   t += '```\n**Dátum zákroku:** ' + v.datum_zak + '\n**Diagnóza:** ' + v.diagnoza + '\n \n**Vykonaný zákrok:** ' + v.zakrok + '\n**Podané liečivá:** ' + v.lieciva + '\n**Ďalší postup:** ' + v.postup + '\n```\n';
   t += 'Poznámka: ' + v.poznamka + '\n';
@@ -2058,6 +2052,10 @@ function openEditor(p, type, recId, textExisting){
     document.getElementById('edText').style.display = 'block';
   }
   document.getElementById('edSend').style.display = 'inline-block';
+  const lastCh = localStorage.getItem('vetark_last_channel') || '';
+  document.getElementById('edChannel').value = lastCh;
+  const lc = loadChannels().find(x=>x.id===lastCh);
+  document.getElementById('edChannelName').value = lc ? (lc.name||'') : '';
   document.getElementById('edDelete').style.display = recId ? 'inline-block' : 'none';
   document.getElementById('editor').classList.add('open');
 }
@@ -2083,10 +2081,41 @@ document.getElementById('edSave').addEventListener('click', async ()=>{
   showToast('Záznam uložený do karty ✓');
 });
 document.getElementById('edCopy').addEventListener('click', ()=> copyText(document.getElementById('edText').value));
-document.getElementById('edSend').addEventListener('click', ()=>{
-  api('records.send', { text: document.getElementById('edText').value })
-    .then(()=> showToast('Záznam odoslaný ✓'))
-    .catch(()=> showToast('Odoslanie zlyhalo — použi kopírovanie'));
+/* --- zapamätané Discord kanály (ID + názov) v tomto prehliadači --- */
+const LS_CH = 'vetark_channels';
+function loadChannels(){ try{ return JSON.parse(localStorage.getItem(LS_CH)) || []; }catch(e){ return []; } }
+function saveChannels(list){ localStorage.setItem(LS_CH, JSON.stringify(list.slice(0,20))); }
+function renderChannelList(){
+  const dl = document.getElementById('edChannelList');
+  dl.innerHTML = loadChannels().map(c=>`<option value="${esc(c.id)}">${esc(c.name||'')}</option>`).join('');
+}
+function rememberChannel(id, name){
+  const list = loadChannels().filter(c=>c.id!==id);
+  list.unshift({ id, name: name || (list.find(c=>c.id===id)||{}).name || '' });
+  saveChannels(list);
+  localStorage.setItem('vetark_last_channel', id);
+  renderChannelList();
+}
+renderChannelList();
+document.getElementById('edChannel').addEventListener('change', ()=>{
+  const c = loadChannels().find(x=>x.id===document.getElementById('edChannel').value.trim());
+  if(c && c.name) document.getElementById('edChannelName').value = c.name;
+});
+
+document.getElementById('edSend').addEventListener('click', async ()=>{
+  const text = document.getElementById('edText').value;
+  if(!text.trim()){ showToast('Najprv vygeneruj náhľad správy'); return; }
+  const chId = document.getElementById('edChannel').value.trim();
+  const chName = document.getElementById('edChannelName').value.trim();
+  if(!/^\d{15,25}$/.test(chId)){ showToast('Zadaj ID Discord kanála (len číslice)'); return; }
+  try{
+    showToast('Odosielam…');
+    await api('records.post', { channel_id: chId, text });
+    rememberChannel(chId, chName);
+    showToast('Záznam odoslaný do kanála ✓');
+  }catch(e){
+    showToast('Odoslanie zlyhalo: ' + e.message);
+  }
 });
 document.getElementById('edDelete').addEventListener('click', async ()=>{
   if(!edCtx || !edCtx.recId) return;
