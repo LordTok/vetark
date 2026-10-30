@@ -1,37 +1,44 @@
 name: Stiahnuť supabase-js do assets/vendor
 
-# Jednorazovo stiahne pripnutú verziu supabase-js z jsDelivr a commitne ju do repa.
-# Spustí sa po pushi, ak súbor ešte chýba, alebo ručne (Actions → Run workflow).
+# Stiahne pripnutú verziu supabase-js z jsDelivr, overí jej SHA-256 oproti
+# očakávanej hodnote a commitne ju do repa. Spúšťa sa ručne (Actions → Run workflow)
+# alebo po zmene tohto súboru (napr. pri zvýšení verzie).
+#
+# Aktualizácia na novú verziu:
+#   1) zmeň SB_VERSION,
+#   2) zisti hash novej verzie (lokálne: curl -sL <url> | sha256sum, alebo porovnaj
+#      s `npm pack @supabase/supabase-js@<verzia>` → dist/umd/supabase.js),
+#   3) zapíš ho do SB_SHA256 a commitni — workflow sa spustí sám.
 on:
   push:
-    branches: [security-legal-fix, main]
+    branches: [main]
     paths: ['.github/workflows/vendor-supabase.yml']
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
 
 env:
   SB_VERSION: 2.118.0
+  SB_SHA256: ee3be8de192b97cb1d73d1e95d6b82bb1f6b658c0f97c4ef757fc331996ed3d3
 
 jobs:
   vendor:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Stiahnuť a overiť
         run: |
           set -eu
           mkdir -p assets/vendor
-          curl -fsSL "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@${SB_VERSION}/dist/umd/supabase.js" -o assets/vendor/supabase.js
-          size=$(stat -c%s assets/vendor/supabase.js)
-          echo "veľkosť: $size B"
-          test "$size" -gt 100000
+          url="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@${SB_VERSION}/dist/umd/supabase.js"
+          curl -fsSL "$url" -o assets/vendor/supabase.js
+          echo "${SB_SHA256}  assets/vendor/supabase.js" | sha256sum -c -
           grep -q "createClient" assets/vendor/supabase.js
-          sha256sum assets/vendor/supabase.js | tee assets/vendor/supabase.js.sha256
-          echo "supabase-js v${SB_VERSION} — https://cdn.jsdelivr.net/npm/@supabase/supabase-js@${SB_VERSION}/dist/umd/supabase.js" > assets/vendor/VERSION.txt
-          rm -f assets/vendor/STIAHNI-supabase.js.txt
+          sha256sum assets/vendor/supabase.js > assets/vendor/supabase.js.sha256
+          echo "supabase-js v${SB_VERSION} — ${url}" > assets/vendor/VERSION.txt
 
       - name: Commit
         run: |
@@ -39,5 +46,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A assets/vendor
           git diff --cached --quiet && { echo "nič nové"; exit 0; }
-          git commit -m "Pridať supabase-js v${SB_VERSION} (lokálna kópia)"
+          git commit -m "Aktualizovať supabase-js na v${SB_VERSION}"
           git push

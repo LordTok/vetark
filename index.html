@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://xguynguhxnxhrrebjnrw.supabase.co https://cdn.discordapp.com; media-src 'self'; connect-src 'self' https://xguynguhxnxhrrebjnrw.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' https://xguynguhxnxhrrebjnrw.supabase.co https://cdn.discordapp.com; media-src 'self'; connect-src 'self' https://xguynguhxnxhrrebjnrw.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Vet Ark — Mobilná veterinárna služba</title>
 <meta name="description" content="Vet Ark — mobilná veterinárna služba. Prídeme za vaším miláčikom: vyšetrenia, očkovanie, čipovanie a ošetrenia priamo u vás. Fiktívny roleplay projekt (FiveM).">
@@ -15,7 +15,7 @@
 <meta property="og:image" content="https://lordtok.github.io/vetark/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="assets/favicon.png">
-<!-- supabase-js v2.118.0 (UMD), lokálna kópia — pozri POSTUP.md -->
+<!-- supabase-js v2.118.0 (UMD), lokálna kópia — assets/vendor/VERSION.txt -->
 <script src="assets/vendor/supabase.js" defer></script>
 <link rel="stylesheet" href="assets/style.css">
 </head>
@@ -80,7 +80,7 @@
     <!-- ===== DOMOV (zákaznícka časť) ===== -->
     <section class="section active" id="domov">
       <div class="hero">
-    <video autoplay muted loop playsinline poster="assets/poster.jpg">
+    <video autoplay muted loop playsinline controls poster="assets/poster.jpg" aria-label="Úvodné video Vet Ark">
       <source src="assets/vetark-loop.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay">
@@ -317,7 +317,7 @@
       </div>
 
       <div id="patListView">
-        <input type="search" class="search" id="patSearch" placeholder="Hľadať pacienta alebo majiteľa…">
+        <input type="search" class="search" id="patSearch" aria-label="Hľadať pacienta alebo majiteľa" placeholder="Hľadať pacienta alebo majiteľa…">
         <div id="patList"></div>
         <div class="pat-empty" id="patEmpty">Zatiaľ žiadni pacienti.<br><button class="btn-add" data-goto="novakarta" style="margin-top:12px">Založiť novú kartu pacienta →</button></div>
       </div>
@@ -503,7 +503,7 @@
     <div class="rd-meta" id="edMeta"></div>
     <div class="form-grid ed-form" id="edForm"></div>
     <button class="btn-gen" id="edGen" style="margin-top:14px">Vygenerovať náhľad správy</button>
-    <textarea id="edText" spellcheck="false"></textarea>
+    <textarea id="edText" aria-label="Text záznamu" spellcheck="false"></textarea>
     <div class="form-grid" style="margin-top:12px">
       <div class="field"><label for="edChannel">Discord kanál (ID) — kam má bot záznam poslať</label><input id="edChannel" list="edChannelList" placeholder="napr. 1546234981884625016"><datalist id="edChannelList"></datalist></div>
       <div class="field"><label for="edChannelName">Názov kanála (voliteľné, na zapamätanie)</label><input id="edChannelName" placeholder="napr. #zaznamy-psy"></div>
@@ -538,12 +538,12 @@
   <div class="rd-panel">
     <button class="rd-close" id="privacyClose" aria-label="Zavrieť">×</button>
     <h2>Ochrana osobných údajov</h2>
-    <div class="rd-meta">Vet Ark — fanúšikovský roleplay projekt (FiveM) · aktualizované 15. 10. 2026</div>
+    <div class="rd-meta">Vet Ark — fanúšikovský roleplay projekt (FiveM) · aktualizované 30. 10. 2026</div>
     <div class="rd-body">
       <p><b>Kto údaje spracúva.</b> Prevádzkovateľom tejto stránky je súkromná osoba (správca frakcie VET ARK), ktorú zastihnete na Discord serveri VET ARK (rola Veterinár). Nejde o firmu ani o skutočnú veterinárnu ambulanciu.</p>
       <p><b>Aké údaje spracúvame.</b> Pri prihlásení cez Discord sa ukladá vaše Discord meno, avatar a identifikátor účtu; členstvo a rola na Discord serveri VET ARK sa overujú na serveri pri každom prístupe. Ak odošlete objednávku alebo správu, spracúvame údaje, ktoré do nej uvediete (herné meno postavy, herný kontakt). Obsah pridaný členmi (články, fotky, kartotéka a záznamy fiktívnych pacientov) je herný obsah. E-mail ani iné údaje z Discordu nepožadujeme.</p>
       <p><b>Na čo a na akom základe.</b> Výlučne na fungovanie tejto stránky: prihlásenie, overenie členstva, spracovanie objednávok v rámci roleplay hry a zobrazovanie obsahu. Právnym základom je oprávnený záujem prevádzkovateľa a členov komunity na fungovaní stránky (čl. 6 ods. 1 písm. f GDPR). Údaje nepredávame, neposkytujeme tretím stranám na marketing a nepoužívame ich na profilovanie ani automatizované rozhodovanie.</p>
-      <p><b>Kde sú uložené a kto k nim má prístup.</b> Databáza a prihlásenie bežia v službe Supabase (región EÚ, Frankfurt — ak má váš projekt iný región, upravte). Prihlásenie zabezpečuje Discord Inc. (USA) a objednávky i záznamy sa odosielajú do súkromného Discord servera frakcie. Samotnú stránku hostuje GitHub Pages (GitHub Inc., USA), ktorý pri načítaní stránky spracúva vašu IP adresu v serverových logoch. Pri poskytovateľoch mimo EÚ sa prenos opiera o štandardné zmluvné doložky týchto spoločností. Stránka nenačítava žiadne písma, skripty ani iné zdroje z cudzích serverov a nepoužíva analytické ani reklamné nástroje.</p>
+      <p><b>Kde sú uložené a kto k nim má prístup.</b> Databáza a prihlásenie bežia v službe Supabase (región EÚ – Frankfurt). Prihlásenie zabezpečuje Discord Inc. (USA) a objednávky i záznamy sa odosielajú do súkromného Discord servera frakcie. Samotnú stránku hostuje GitHub Pages (GitHub Inc., USA), ktorý pri načítaní stránky spracúva vašu IP adresu v serverových logoch. Pri poskytovateľoch mimo EÚ sa prenos opiera o štandardné zmluvné doložky týchto spoločností. Stránka nenačítava žiadne písma, skripty ani iné zdroje z cudzích serverov a nepoužíva analytické ani reklamné nástroje.</p>
       <p><b>Čo si ukladá váš prehliadač.</b> Len funkčné údaje (localStorage): prihlasovaciu reláciu Supabase, zvolený vzhľad stránky a u veterinárov meno lekára a naposledy použité Discord kanály. Žiadne sledovacie cookies.</p>
       <p><b>Ako dlho.</b> Účet a herný obsah uchovávame, kým ste členom frakcie alebo kým nepožiadate o vymazanie; po odchode z frakcie účet vymažeme najneskôr do 30 dní. Serverové logy hostingu uchováva GitHub podľa vlastných pravidiel (obvykle krátkodobo).</p>
       <p><b>Vaše práva.</b> Máte právo na prístup k údajom, ich opravu, vymazanie, obmedzenie spracúvania, prenosnosť a právo namietať. Stačí napísať správcom na Discord serveri VET ARK — účet a súvisiace údaje vymažeme. Ak si myslíte, že vaše údaje spracúvame v rozpore s právom, môžete podať sťažnosť dozornému orgánu: Úrad na ochranu osobných údajov SR (dataprotection.gov.sk) alebo Úřad pro ochranu osobních údajů ČR (uoou.gov.cz).</p>

@@ -1,5 +1,5 @@
 /* Ochrana proti clickjackingu (GitHub Pages nevie poslať X-Frame-Options a CSP frame-ancestors v <meta> nefunguje) */
-if (window.top !== window.self) { try { window.top.location = window.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }
+if (window.top !== window.self) { document.documentElement.style.display = 'none'; try { window.top.location = window.location.href; } catch (e) {} }
 
 /* ================================================================
    KONFIGURÁCIA — len verejné hodnoty. Všetko citlivé (webhooky,
@@ -17,7 +17,7 @@ const LS_THEME = 'vetark_theme';
 function applyTheme(t){
   if(t === 'dark') document.documentElement.dataset.theme = 'dark';
   else delete document.documentElement.dataset.theme;
-  localStorage.setItem(LS_THEME, t);
+  try{ localStorage.setItem(LS_THEME, t); }catch(e){}
   const label = t === 'dark' ? '☀ Svetlý režim' : '🌙 Tmavý režim';
   const hint = t === 'dark' ? 'Prepnúť na svetlý vzhľad stránky' : 'Prepnúť na tmavý vzhľad stránky';
   const a = document.getElementById('themeToggleTop');
@@ -25,7 +25,7 @@ function applyTheme(t){
   if(a){ a.textContent = label; a.title = hint; a.setAttribute('aria-label', hint); }
   if(b){ b.textContent = label; b.title = hint; b.setAttribute('aria-label', hint); }
 }
-applyTheme(localStorage.getItem(LS_THEME) || 'light');
+applyTheme((()=>{ try{ return localStorage.getItem(LS_THEME); }catch(e){ return null; } })() || 'light');
 if(!DISCORD_INVITE_URL.startsWith('DOPLN')){
   document.getElementById('gateInvite').style.display = 'block';
   document.getElementById('gateInviteLink').href = DISCORD_INVITE_URL;
@@ -36,7 +36,7 @@ function toggleTheme(){
 document.getElementById('themeToggleTop').addEventListener('click', toggleTheme);
 document.getElementById('themeToggleGate').addEventListener('click', toggleTheme);
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { flowType: 'pkce' } });
 
 const gate = document.getElementById('gate');
 const app = document.getElementById('app');
@@ -158,8 +158,8 @@ async function renderArticles(){
   const db = await fetchArticles();
   ALL_ARTICLES = db.concat(ART_BUILTIN);
   const list = document.getElementById('artList');
-  list.innerHTML = ALL_ARTICLES.map(function(a,i){ return '<div class="art" data-art="'+i+'" tabindex="0" role="button">'
-    + (a.id ? '<button class="art-del deletable" data-delart="'+a.id+'" title="Zmazať článok">×</button>' : '')
+  list.innerHTML = ALL_ARTICLES.map(function(a,i){ return '<div class="art" data-art="'+esc(i)+'" tabindex="0" role="button">'
+    + (a.id ? '<button class="art-del deletable" data-delart="'+esc(a.id)+'" title="Zmazať článok">×</button>' : '')
     + '<h3>'+esc(a.title)+'</h3>'
     + '<div class="art-meta">'+artDate(a.created_at)+(a.author ? ' · '+esc(a.author) : '')+'</div>'
     + '<div class="art-excerpt">'+esc(excerpt(a.body))+'</div></div>'; }).join('');
@@ -213,7 +213,7 @@ async function renderDbPhotos(){
   data.forEach(p=>{
     const fig = document.createElement('figure');
     fig.className = 'gph'; fig.dataset.dbid = p.id;
-    fig.innerHTML = '<button class="ph-del deletable" data-delph="'+p.id+'" title="Zmazať">×</button><img src="'+esc(p.url)+'" alt="" loading="lazy"><figcaption>'+esc(p.caption||'')+'</figcaption>';
+    fig.innerHTML = '<button class="ph-del deletable" data-delph="'+esc(p.id)+'" title="Zmazať">×</button><img src="'+esc(p.url)+'" alt="" loading="lazy"><figcaption>'+esc(p.caption||'')+'</figcaption>';
     gal.appendChild(fig);
   });
 }
@@ -349,7 +349,7 @@ document.querySelectorAll('[data-goto]').forEach(t=>{
     const nr = document.createElement('tr');
     if(r.classList.contains('tbl-group')){
       nr.className = 'tbl-group';
-      nr.innerHTML = '<td colspan="2">' + r.cells[0].textContent + '</td>';
+      nr.innerHTML = '<td colspan="2">' + esc(r.cells[0].textContent) + '</td>';
     }else{
       nr.innerHTML = '<td>' + esc(r.cells[0].textContent) + '</td><td class="price">' + esc(r.cells[1].textContent) + '</td>';
     }
@@ -407,8 +407,8 @@ async function renderOrders(){
       <div class="ord-top">
         <span class="rec-type ${ORD_KIND_CLASS[o.kind]||'karta'}">${esc(o.kind)}</span>
         <span class="ord-date">${ordDate(o.created_at)}</span>
-        <button class="ord-status ${st}" data-ost="${o.id}" data-cur="${st}">${st==='nova'?'Nová':'Vybavená'}</button>
-        <button class="ord-del" data-odel="${o.id}" title="Zmazať">×</button>
+        <button class="ord-status ${st}" data-ost="${esc(o.id)}" data-cur="${st}">${st==='nova'?'Nová':'Vybavená'}</button>
+        <button class="ord-del" data-odel="${esc(o.id)}" title="Zmazať">×</button>
       </div>
       <div class="ord-body"><b>Klient:</b> ${esc(o.meno)||'—'} · <b>Kontakt:</b> ${esc(o.kontakt)||'—'}${lines.length?'<br>'+lines.join('<br>'):''}</div>
     </div>`;
@@ -470,9 +470,11 @@ async function renderCal(){
     body += `<div class="c-day${iso===todayIso?' today':''}${wknd}" data-date="${iso}">`;
     for(let hh=CAL_H0; hh<CAL_H1; hh++) body += `<div class="c-cell" data-h="${hh}"></div>`;
     EV_CACHE.filter(ev=>ev.date===iso).forEach(ev=>{
-      const top = (ev.start_h - CAL_H0) * CAL_CELL + 1;
-      const hgt = Math.max(0.5, parseFloat(ev.dur)||1) * CAL_CELL - 3;
-      body += `<div class="c-ev" data-ev="${ev.id}" style="top:${top}px;height:${hgt}px">${esc(ev.title)}<small>${ev.start_h}:00 · ${ev.dur} h</small></div>`;
+      const sh  = Math.min(CAL_H1, Math.max(CAL_H0, parseInt(ev.start_h, 10) || CAL_H0));
+      const du  = Math.min(CAL_H1 - CAL_H0, Math.max(0.5, parseFloat(ev.dur) || 1));
+      const top = (sh - CAL_H0) * CAL_CELL + 1;
+      const hgt = du * CAL_CELL - 3;
+      body += `<div class="c-ev" data-ev="${esc(ev.id)}" style="top:${top}px;height:${hgt}px">${esc(ev.title)}<small>${sh}:00 · ${du} h</small></div>`;
     });
     if(iso===todayIso){
       const now = new Date();
@@ -745,14 +747,14 @@ async function renderPatList(){
   const filtered = PATS.filter(p=> !q || ((p.meno||'')+' '+(p.majitel||'')).toLowerCase().includes(q));
   document.getElementById('patEmpty').style.display = PATS.length ? 'none' : 'block';
   list.innerHTML = filtered.map(p=>`
-    <div class="pat-row" data-open="${p.id}" tabindex="0" role="button">
+    <div class="pat-row" data-open="${esc(p.id)}" tabindex="0" role="button">
       <div class="pr-avatar">${esc(initials(p.meno))}</div>
       <div class="pr-meta"><b>${esc(p.meno)||'Bez mena'}${p.sluzobne?' <span class="pat-badge">Služobné</span>':''}</b>
       <span>${esc(p.pohlavie)} · ${esc(p.plemeno)||'—'} · majiteľ: ${esc(p.majitel)||'—'}</span></div>
-      <div class="pr-count">${p.recCount} zázn.</div>
+      <div class="pr-count">${esc(p.recCount)} zázn.</div>
     </div>`).join('');
   const sel = document.getElementById('recPat');
-  sel.innerHTML = PATS.map(p=>`<option value="${p.id}">${esc(p.meno)||'Bez mena'} (${esc(p.majitel)||'—'})</option>`).join('');
+  sel.innerHTML = PATS.map(p=>`<option value="${esc(p.id)}">${esc(p.meno)||'Bez mena'} (${esc(p.majitel)||'—'})</option>`).join('');
 }
 document.getElementById('patSearch').addEventListener('input', renderPatList);
 document.getElementById('patList').addEventListener('click', e=>{
@@ -788,7 +790,7 @@ async function refreshRecords(){
   const list = document.getElementById('recList');
   document.getElementById('recEmpty').style.display = RECS.length ? 'none' : 'block';
   list.innerHTML = [...RECS].reverse().map(r=>`
-    <div class="rec-row" data-rec="${r.id}" tabindex="0" role="button">
+    <div class="rec-row" data-rec="${esc(r.id)}" tabindex="0" role="button">
       <span class="rec-type ${esc(r.type)}">${esc(REC_LABEL[r.type]||r.type)}</span>
       <span class="rc-date">${esc(r.date)}</span>
     </div>`).join('');
@@ -987,6 +989,29 @@ function openEditor(p, type, recId, textExisting){
 }
 document.getElementById('edGen').addEventListener('click', generatePreview);
 function closeEditor(){ document.getElementById('editor').classList.remove('open'); edCtx = null; }
+
+/* --- Prístupnosť: fokus v dialógoch a stav tabov --- */
+(function(){
+  let lastFocus = null;
+  const dialogs = document.querySelectorAll('.reader, .editor, .lightbox, .booking');
+  const obs = new MutationObserver(muts => muts.forEach(m => {
+    const el = m.target;
+    if(el.classList.contains('open')){
+      lastFocus = document.activeElement;
+      el.setAttribute('aria-modal', 'true');
+      const f = el.querySelector('input:not([type=hidden]), textarea, select, button:not([aria-label="Zavrieť"]), [href]') || el.querySelector('button');
+      if(f) setTimeout(()=> f.focus(), 0);
+    }else if(m.oldValue && m.oldValue.includes('open')){
+      el.removeAttribute('aria-modal');
+      if(lastFocus && document.contains(lastFocus)) lastFocus.focus();
+      lastFocus = null;
+    }
+  }));
+  dialogs.forEach(d => obs.observe(d, { attributes: true, attributeFilter: ['class'], attributeOldValue: true }));
+  const syncTabs = () => document.querySelectorAll('[role="tab"]').forEach(t => t.setAttribute('aria-selected', t.classList.contains('active') ? 'true' : 'false'));
+  syncTabs();
+  document.querySelectorAll('[role="tablist"]').forEach(tl => new MutationObserver(syncTabs).observe(tl, { attributes: true, subtree: true, attributeFilter: ['class'] }));
+})();
 document.getElementById('edClose').addEventListener('click', closeEditor);
 document.getElementById('editor').addEventListener('click', e=>{ if(e.target.id==='editor') closeEditor(); });
 document.getElementById('edSave').addEventListener('click', async ()=>{
