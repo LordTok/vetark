@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://xguynguhxnxhrrebjnrw.supabase.co https://cdn.discordapp.com; media-src 'self'; connect-src 'self' https://xguynguhxnxhrrebjnrw.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Vet Ark — Mobilná veterinárna služba</title>
+<meta name="description" content="Vet Ark — mobilná veterinárna služba. Prídeme za vaším miláčikom: vyšetrenia, očkovanie, čipovanie a ošetrenia priamo u vás. Fiktívny roleplay projekt (FiveM).">
+<meta name="theme-color" content="#012E43">
+<meta property="og:title" content="Vet Ark — Mobilná veterinárna služba">
+<meta property="og:description" content="Prídeme za vaším miláčikom — vyšetrenia, očkovanie, čipovanie a ošetrenia priamo u vás. Fiktívny roleplay projekt (FiveM).">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://lordtok.github.io/vetark/">
+<meta property="og:image" content="https://lordtok.github.io/vetark/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<!-- supabase-js v2.118.0 (UMD), lokálna kópia — pozri POSTUP.md -->
+<script src="assets/vendor/supabase.js" defer></script>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- ======================== LOGIN GATE ======================== -->
+<div id="gate">
+  <button class="theme-toggle gate-theme" id="themeToggleGate" title="Prepnúť svetlý/tmavý režim" aria-label="Prepnúť tému">◐</button>
+  <div class="gate-card">
+    <div class="gate-logo">
+      <img src="assets/logo.png" alt="VET ARK logo">
+    </div>
+    <h1><span class="vet">VET</span> <span class="ark">ARK</span></h1>
+    <div class="sub">Interný panel · Mobile Veterinary Service</div>
+    <div class="slogan">„Vaši miláčikovia, naša priorita!"</div>
+    <button class="btn-discord" id="btnLogin">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.331c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+      Prihlásiť sa cez Discord
+    </button>
+    <div class="gate-invite" id="gateInvite" style="display:none">Nie si člen? <a id="gateInviteLink" href="#" target="_blank" rel="noopener">Pridaj sa na náš Discord →</a></div>
+    <div class="gate-error" id="gateError"></div>
+    <div class="gate-note">Prístup majú len členovia Discord serveru VET ARK.<br>Prihlásením potvrdzuješ interné pravidlá frakcie.</div>
+    <div class="gate-disclaimer">Fiktívny roleplay projekt (FiveM / GTA V). Nejde o skutočnú veterinárnu službu.</div>
+  </div>
+</div>
+
+<!-- ======================== APP ======================== -->
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo.png" alt="" style="width:34px;height:34px;object-fit:contain">
+      <span><span class="vet">VET</span> <span class="ark">ARK</span></span>
+    </div>
+    <div class="spacer"></div>
+    <button class="theme-toggle" id="themeToggleTop" title="Prepnúť svetlý/tmavý režim" aria-label="Prepnúť tému">◐</button>
+    <div class="userchip">
+      <img id="userAvatar" alt="">
+      <span id="userName">—</span>
+    </div>
+    <button class="btn-out" id="btnLogout">Odhlásiť</button>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="domov" role="tab">Domov</button>
+    <button class="tab" data-tab="onas" role="tab">O nás</button>
+    <button class="tab" data-tab="cennikpub" role="tab">Cenník</button>
+    <button class="tab tab-nocontent" data-tab="clanky" role="tab">Články</button>
+    <button class="tab tab-nocontent" data-tab="galeria" role="tab">Galéria</button>
+  </nav>
+  <nav class="tabs tabs-int" role="tablist">
+    <button class="tab internal" data-tab="pacienti" role="tab">Pacienti</button>
+    <button class="tab internal" data-tab="novakarta" role="tab">Nová karta</button>
+    <button class="tab internal" data-tab="zaznamy" role="tab">Záznamy</button>
+    <button class="tab internal" data-tab="ziadosti" role="tab">Žiadosti <span class="tab-badge" id="ordBadge" style="display:none">0</span></button>
+    <button class="tab internal" data-tab="kalendar" role="tab">Kalendár</button>
+    <button class="tab internal" data-tab="cennik" role="tab">Kalkulačka</button>
+  </nav>
+
+
+
+  <main>
+    <!-- ===== DOMOV (zákaznícka časť) ===== -->
+    <section class="section active" id="domov">
+      <div class="hero">
+    <video autoplay muted loop playsinline poster="assets/poster.jpg">
+      <source src="assets/vetark-loop.mp4" type="video/mp4">
+    </video>
+    <div class="hero-overlay">
+          <div class="hero-ctas">
+            <button class="hbtn blue" data-hero="kontrola">Objednať kontrolu</button>
+            <button class="hbtn red" data-hero="zakrok">Objednať zákrok</button>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="services">
+        <div class="sv"><span class="sv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span><b>Vyšetrenia</b><span>priamo u vás</span></div>
+        <div class="sv"><span class="sv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M19 5l-2-2M14 4l6 6M12 6l6 6-7 7-6-6zM5 13l-2 2 3 3 2-2M9 11l2 2"/></svg></span><b>Očkovanie</b><span>a odčervenie</span></div>
+        <div class="sv"><span class="sv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span><b>Čipovanie</b><span>a kontrola čipu</span></div>
+        <div class="sv"><span class="sv-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 17V7h11v10M14 10h4l3 3v4h-7z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M7 10h3M8.5 8.5v3"/></svg></span><b>Pohotovosť</b><span>18:00 – 23:00</span></div>
+      </div>
+      <div class="form-card booking" id="booking">
+        <div class="section-head" style="margin-bottom:16px">
+          <span class="eyebrow">Objednávka</span>
+          <h2 id="bookingTitle">Objednať kontrolu</h2>
+          <p>Vyplň údaje a odošli — objednávka príde priamo nášmu tímu. Ozveme sa s termínom.</p>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label for="bName">Meno klienta (IC)</label><input id="bName" placeholder="meno postavy"></div>
+          <div class="field"><label for="bContact">Kontakt</label><input id="bContact" placeholder="telefón IC / Discord"></div>
+          <div class="field" id="wPet"><label for="bPet">Miláčik</label><input id="bPet" placeholder="druh, meno, vek"></div>
+          <div class="field" id="wType"><label for="bType">Typ</label><select id="bType"></select></div>
+          <div class="field" id="wWhen"><label for="bWhen">Preferovaný čas</label><input id="bWhen" placeholder="napr. dnes večer, víkend"></div>
+          <div class="field" id="wPlace"><label for="bPlace">Miesto</label><input id="bPlace" placeholder="kam máme prísť"></div>
+          <div class="field full"><label for="bNote" id="bNoteLabel">Poznámka / popis problému</label><textarea id="bNote" placeholder="stručný popis"></textarea></div>
+        </div>
+        <button class="btn-gen" id="bGen">Odoslať objednávku</button>
+      </div>
+
+
+      <div class="steps">
+        <div class="step"><div class="step-n">1</div><b>Objednáte</b><span>Vyplníte formulár — objednávka nám príde okamžite.</span></div>
+        <div class="step-arrow" aria-hidden="true">→</div>
+        <div class="step"><div class="step-n">2</div><b>Potvrdíme termín</b><span>Ozveme sa cez Discord a dohodneme čas aj miesto.</span></div>
+        <div class="step-arrow" aria-hidden="true">→</div>
+        <div class="step"><div class="step-n">3</div><b>Prídeme za vami</b><span>Mobilná ambulancia priamo k vašim dverám.</span></div>
+      </div>
+      <div class="ask-strip">
+        <div>
+          <b>Máte otázku alebo niečo iné na srdci?</b>
+          <span>Nemusí ísť hneď o objednávku — radi poradíme.</span>
+        </div>
+        <button class="btn-add" data-hero="sprava">Napísať nám →</button>
+      </div>
+
+      <!-- živé náhľady -->
+      <div class="home-live">
+        <div class="hl-article" data-goto="clanky" id="homeArt" style="display:none">
+          <span class="tag">Najnovší článok</span>
+          <h3 id="homeArtTitle"></h3>
+          <p id="homeArtExcerpt"></p>
+          <span class="hl-more">Čítať viac →</span>
+        </div>
+        <div class="hl-photos" id="homePhotosWrap" style="display:none">
+          <span class="tag">Z galérie</span>
+          <div class="hl-strip" id="homePhotos"></div>
+          <button class="hl-more hl-btn" data-goto="galeria">Celá galéria →</button>
+        </div>
+      </div>
+
+      <!-- teaser O nás -->
+      <div class="card about-teaser">
+        <div class="at-grid">
+          <img src="assets/ambulance.jpg" alt="Mobilná ambulancia Vet Ark" loading="lazy">
+          <div>
+            <span class="tag">O nás</span>
+            <h3>Vet Ark LLC. — mobilná veterinárna služba</h3>
+            <p>Odborná starostlivosť priamo v teréne — vyšetrenia, očkovania, čipovanie a ošetrenia u vás doma, bez stresu z návštevy kliniky. Špecializujeme sa na psy, mačky a pracovné zvieratá.</p>
+            <button class="btn-add" data-goto="onas" style="margin-top:10px">Viac o nás →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== O NÁS ===== -->
+    <section class="section" id="onas">
+      <div class="section-head">
+        <span class="eyebrow">Kto sme</span>
+        <h2>O nás</h2>
+        <p>Mobilná veterinárna služba Vet Ark LLC. — „Vaši miláčikovia, naša priorita!"</p>
+      </div>
+
+      <div class="card about">
+        <img class="about-vehicle" src="assets/ambulance.jpg" alt="Mobilná ambulancia Vet Ark" loading="lazy">
+        <span class="tag">O nás</span>
+        <h3>Vet Ark LLC. — mobilná veterinárna služba</h3>
+        <p>Vet Ark poskytuje odbornú starostlivosť priamo v teréne. Zameriavame sa na spoločenské zvieratá, predovšetkým psy a mačky, s osobitným dôrazom na pracovné zvieratá, ktoré si vyžadujú špecifický prístup a pravidelnú kontrolu zdravotného stavu.</p>
+        <p>Našou prioritou je preventívna medicína, základná diagnostika a terapeutické úkony vykonávané priamo v mobilnej ambulancii — bez potreby návštevy kamennej kliniky. Vyšetrenia, očkovania, čipovanie, ošetrenia aj pooperačné kontroly robíme priamo u klientov, čím znižujeme stres zvierat a zvyšujeme dostupnosť starostlivosti v celom regióne.</p>
+        <p>Pri pracovných psoch kladieme dôraz na ortopédiu, fyzioterapiu a rehabilitačné postupy v rámci možností terénnej praxe. V rámci rozšírenej praxe poskytujeme aj terénne služby pre úžitkové zvieratá — profylaxia, základné vyšetrenia a poradenstvo. Limitom sú len náročné operácie, ktoré v teréne nerobíme.</p>
+        <img class="about-badge" src="assets/badge.png" alt="Vet Ark — Vaši miláčikovia, naša priorita" loading="lazy">
+      </div>
+
+      <div class="card">
+        <span class="tag">Naše služby</span>
+        <h3>Čo pre vás vieme spraviť</h3>
+        <div class="svc-cols">
+          <div>
+            <b class="svc-h">Prehliadky</b>
+            <ul>
+              <li>Vstupná prehliadka pre registráciu</li>
+              <li>Preventívna prehliadka</li>
+              <li>Profesná prehliadka pre pracovné psy</li>
+              <li>Predoperačná a pooperačná kontrola</li>
+              <li>Kontrola zdravotného stavu pri podozrení na problém</li>
+            </ul>
+          </div>
+          <div>
+            <b class="svc-h">Odborné úkony</b>
+            <ul>
+              <li>Čipovanie a kontrola čipu</li>
+              <li>Očkovanie a odčervenie</li>
+              <li>Základné krvné testy a vyšetrenie ultrazvukom</li>
+              <li>Ošetrenie rán a poranení</li>
+              <li>Vyšetrenie po úrazoch v RP situáciách</li>
+            </ul>
+          </div>
+        </div>
+        <p style="margin-top:12px">Pri pracovných psoch navyše ponúkame ortopedické posúdenie, fyzioterapiu a rehabilitačné postupy v rámci možností terénnej praxe. V rámci rozšírenej praxe poskytujeme terénne služby aj pre úžitkové zvieratá — profylaxiu, základné vyšetrenia a poradenstvo pre majiteľov. Náročné operácie v teréne nevykonávame; v takom prípade odporučíme ďalší vhodný postup.</p>
+      </div>
+
+      <div class="card red">
+        <span class="tag">Pohotovosť</span>
+        <h3>Pohotovostné výjazdy</h3>
+        <p>Pohotovostné výjazdy realizujeme podľa potreby až priamo k vašim dverám — <b>výhradne pre registrovaných pacientov</b>.</p>
+        <ul>
+          <li>Vieme, kde vás nájsť — ambulanciu vyšleme rýchlejšie.</li>
+          <li>Máme kompletný zdravotný záznam — poskytneme kvalitnejšiu pomoc.</li>
+          <li>Poznáme históriu a povahu vášho miláčika — podstatné pri zranení, šoku a prvej pomoci.</li>
+        </ul>
+        <div class="hours">
+          <div class="h"><b>Pracovné dni</b>18:00 – 23:00</div>
+          <div class="h"><b>Víkend</b>zatiaľ nedostupné</div>
+        </div>
+        <p style="margin-top:12px;font-size:13px;color:var(--ink-soft)">Nie ste registrovaný? Objednajte si vstupnú prehliadku pre registráciu tlačidlom vyššie.</p>
+      </div>
+
+      <div class="section-head" style="margin-top:32px">
+        <span class="eyebrow">Ľudia za Vet Ark</span>
+        <h2 style="font-size:26px">Náš tím</h2>
+      </div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="tm-avatar tm-photo"><img src="assets/marcus.jpg" alt="Marcus John Hickman" loading="lazy"></div>
+          <b>Marcus John Hickman, D.V.M.</b>
+          <span>Veterinárny lekár · zakladateľ</span>
+        </div>
+        <div class="team-card tm-soon">
+          <div class="tm-avatar">+</div>
+          <b>Ďalších členov tímu čoskoro predstavíme</b>
+          <span>Tím Vet Ark rastie</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== VEREJNÝ CENNÍK ===== -->
+    <section class="section" id="cennikpub">
+      <div class="section-head">
+        <span class="eyebrow">Transparentné ceny</span>
+        <h2>Cenník</h2>
+        <p>Ceny výkonov v $ (in-game). Ceny označené „od" sú orientačné — konečná suma závisí od rozsahu ošetrenia. K výkonom sa pripočítava výjazd ambulancie. Frakcie s dohodou majú zľavu 20 %.</p>
+      </div>
+      <div id="pubPriceWrap"></div>
+    </section>
+
+    <!-- ===== ČLÁNKY ===== -->
+    <section class="section" id="clanky">
+      <div class="section-head">
+        <span class="eyebrow">Novinky a rady</span>
+        <h2>Články</h2>
+        <p>Odborné rady a novinky z praxe Vet Ark.</p>
+      </div>
+
+      <div class="internal-only" style="margin-bottom:16px">
+        <button class="btn-add" id="artAdd">+ Pridať článok</button>
+      </div>
+
+      <div class="form-card booking" id="artForm">
+        <div class="section-head" style="margin-bottom:16px">
+          <span class="eyebrow">Nový článok</span>
+          <h2>Pridať článok</h2>
+        </div>
+        <div class="form-grid">
+          <div class="field full"><label for="artTitle">Nadpis</label><input id="artTitle"></div>
+          <div class="field full"><label for="artBody">Text článku (odseky oddeľ prázdnym riadkom)</label><textarea id="artBody" style="min-height:220px"></textarea></div>
+        </div>
+        <button class="btn-gen" id="artSave">Uverejniť článok</button>
+        <button class="pbtn del" id="artCancel" style="margin-left:8px;padding:12px 18px">Zrušiť</button>
+      </div>
+
+      <div id="artList"></div>
+      <div class="pat-empty" id="artEmpty" style="display:none">Zatiaľ žiadne články — čoskoro pribudnú rady a novinky z našej praxe.</div>
+    </section>
+
+    <!-- ===== GALÉRIA ===== -->
+    <section class="section" id="galeria">
+      <div class="section-head">
+        <span class="eyebrow">Naša práca</span>
+        <h2>Fotogaléria</h2>
+        <p>Naši pacienti a práca v teréne — klikni na fotku pre zväčšenie.</p>
+      </div>
+
+      <div class="internal-only" style="margin-bottom:16px">
+        <button class="btn-add" id="phAdd">+ Pridať fotku</button>
+      </div>
+
+      <div class="form-card booking" id="phForm">
+        <div class="section-head" style="margin-bottom:16px">
+          <span class="eyebrow">Nová fotka</span>
+          <h2>Pridať fotku do galérie</h2>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label for="phFile">Fotka (JPG/PNG)</label><input type="file" id="phFile" accept="image/*"></div>
+          <div class="field"><label for="phCap">Popisok</label><input id="phCap" placeholder="krátky popis fotky"></div>
+        </div>
+        <button class="btn-gen" id="phSave">Nahrať fotku</button>
+        <button class="pbtn del" id="phCancel" style="margin-left:8px;padding:12px 18px">Zrušiť</button>
+      </div>
+      <div class="gal"></div>
+      <div class="pat-empty" id="galEmpty">Galéria sa pripravuje — čoskoro pribudnú fotky z našej praxe.</div>
+    </section>
+
+    <!-- ===== PACIENTI (zoznam a karty) ===== -->
+    <section class="section" id="pacienti">
+      <div class="section-head">
+        <span class="eyebrow">Kartotéka</span>
+        <h2>Pacienti</h2>
+        <p>Menný zoznam pacientov. Kliknutím otvoríš kartu pacienta so všetkými záznamami.</p>
+      </div>
+
+      <div id="patListView">
+        <input type="search" class="search" id="patSearch" placeholder="Hľadať pacienta alebo majiteľa…">
+        <div id="patList"></div>
+        <div class="pat-empty" id="patEmpty">Zatiaľ žiadni pacienti.<br><button class="btn-add" data-goto="novakarta" style="margin-top:12px">Založiť novú kartu pacienta →</button></div>
+      </div>
+
+      <div id="patDetail" style="display:none">
+        <button class="pbtn del" id="patBack" style="margin-bottom:16px;padding:10px 16px">← Späť na zoznam</button>
+        <div class="card" id="patInfo"></div>
+        <div class="pat-actions" style="margin:16px 0 24px">
+          <button class="pbtn kontrola" id="pdKontrola">+ Záznam o kontrole</button>
+          <button class="pbtn zakrok" id="pdZakrok">+ Záznam o zákroku</button>
+          <button class="pbtn karta" id="pdKarta">+ Hlavná karta</button>
+          <button class="pbtn edit" id="pdEdit">Upraviť údaje</button>
+          <button class="pbtn del" id="pdDelete">Zmazať pacienta</button>
+        </div>
+        <div class="section-head" style="margin-bottom:12px"><span class="eyebrow">História</span><h2 style="font-size:24px">Záznamy pacienta</h2></div>
+        <div id="recList"></div>
+        <div class="pat-empty" id="recEmpty">Žiadne záznamy. Pridaj prvý tlačidlami vyššie.</div>
+      </div>
+    </section>
+
+    <!-- ===== NOVÁ KARTA ===== -->
+    <section class="section" id="novakarta">
+      <div class="section-head">
+        <span class="eyebrow">Registrácia pacienta</span>
+        <h2 id="nkTitle">Nová karta pacienta</h2>
+        <p>Vyplň údaje podľa vzoru hlavnej karty. Po uložení sa môže rovno vygenerovať vstupná lekárska správa s čipovaním a očkovaním.</p>
+      </div>
+
+      <div class="pat-toolbar">
+        <div class="field" style="max-width:320px"><label for="doctorName">Vypísal (D.V.M.)</label><input id="doctorName" placeholder="Marcus John Hickman D.V.M."></div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label for="pMajitel">Majiteľ</label><input id="pMajitel"></div>
+          <div class="field"><label for="pTel">Tel. kontakt</label><input id="pTel"></div>
+          <div class="field full"><label for="pAdresa">Adresa</label><input id="pAdresa"></div>
+          <div class="field"><label for="pDruh">Druh</label><input id="pDruh" value="Pes"></div>
+          <div class="field"><label for="pMeno">Meno zvieraťa</label><input id="pMeno"></div>
+          <div class="field"><label for="pVek">Vek</label><input id="pVek" placeholder="napr. 2 roky"></div>
+          <div class="field"><label for="pPohlavie">Pohlavie</label><select id="pPohlavie"><option>Pes</option><option>Fena</option></select></div>
+          <div class="field"><label for="pPlemeno">Plemeno</label><input id="pPlemeno"></div>
+          <div class="field"><label for="pCip">Číslo čipu</label><input id="pCip"></div>
+          <div class="field" style="justify-content:flex-end"><label class="switch" style="color:var(--ink)"><input type="checkbox" id="pSluzobne"> Služobné zviera (S.O.S./E.M.R.S.)</label></div>
+        </div>
+
+        <div id="nkKarta">
+          <div class="section-head" style="margin:26px 0 12px">
+            <span class="eyebrow">Vstupná správa · čipovanie · očkovanie</span>
+            <h2 style="font-size:22px">Hlavná karta</h2>
+            <p>Vypíš hodnoty vstupnej prehliadky — všetko je predvyplnené štandardom, zmeň len to, čo treba. Po uložení sa vygeneruje kompletná hlavná karta a uloží sa pacientovi.</p>
+          </div>
+          <div class="form-grid ed-form" id="nkKartaFields"></div>
+        </div>
+
+        <button class="btn-gen" id="patSave">Uložiť kartu pacienta</button>
+        <button class="pbtn del" id="patCancel" style="margin-left:8px;padding:12px 18px;display:none">Zrušiť úpravu</button>
+      </div>
+    </section>
+
+    <!-- ===== ZÁZNAMY ===== -->
+    <section class="section" id="zaznamy">
+      <div class="section-head">
+        <span class="eyebrow">Lekárske správy</span>
+        <h2>Vypísať záznam</h2>
+        <p>Vyber pacienta a typ správy — text sa predvyplní podľa šablóny aj so správnym skloňovaním. Doladíš, uložíš do karty a odošleš.</p>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label for="recPat">Pacient</label><select id="recPat"></select></div>
+          <div class="field"><label for="recType">Typ záznamu</label><select id="recType">
+            <option value="kontrola">Záznam o kontrole (kontrolná prehliadka)</option>
+            <option value="zakrok">Záznam o úkone / ošetrení (zákrok)</option>
+            <option value="karta">Hlavná karta (vstupná správa)</option>
+          </select></div>
+        </div>
+        <div class="form-grid ed-form" id="zzFields" style="margin-top:18px"></div>
+        <div class="pat-empty" id="zzEmpty" style="display:none">Záznam sa ukladá do karty pacienta — najprv treba pacienta založiť.<br><button class="btn-add" data-goto="novakarta" style="margin-top:12px">Založiť novú kartu pacienta →</button></div>
+        <button class="btn-gen" id="recGen">Uložiť záznam do karty</button>
+      </div>
+    </section>
+
+    <!-- ===== CENNÍK ===== -->
+    <!-- ===== ŽIADOSTI ===== -->
+    <section class="section" id="ziadosti">
+      <div class="section-head">
+        <span class="eyebrow">Prijaté od klientov</span>
+        <h2>Žiadosti</h2>
+        <p>Objednávky kontrol, zákrokov a správy od klientov. Označ vybavené, nech máte prehľad, čo ešte čaká.</p>
+      </div>
+      <div id="ordList"></div>
+      <div class="pat-empty" id="ordEmpty">Zatiaľ žiadne žiadosti.</div>
+    </section>
+
+    <!-- ===== KALENDÁR ===== -->
+    <section class="section" id="kalendar">
+      <div class="section-head">
+        <span class="eyebrow">Plán týždňa</span>
+        <h2>Kalendár</h2>
+        <p>Klikni do voľného políčka a zapíš plánované vyšetrenie. Kliknutím na udalosť ju upravíš alebo zmažeš.</p>
+      </div>
+      <div class="cal-bar">
+        <button class="pbtn edit" id="calPrev">‹</button>
+        <button class="pbtn edit" id="calToday">Dnes</button>
+        <button class="pbtn edit" id="calNext">›</button>
+        <b id="calRange"></b>
+      </div>
+      <div class="cal-wrap">
+        <div class="cal-head" id="calHead"></div>
+        <div class="cal-body" id="calBody"></div>
+      </div>
+    </section>
+
+    <section class="section" id="cennik">
+      <div class="section-head">
+        <span class="eyebrow">Interaktívna kalkulačka</span>
+        <h2>Cenník výkonov</h2>
+        <p>Naklikaj výkony pre klienta — panel spočíta sumu. Výsledok skopíruješ jedným tlačidlom rovno pre klienta alebo do Discordu.</p>
+      </div>
+
+      <div class="calc-bar">
+        <div class="total"><span id="calcTotal">$ 0</span><small id="calcDetail">žiadne výkony</small></div>
+        <div class="spacer"></div>
+        <label class="switch"><input type="checkbox" id="discountToggle"> Zľava 20 % (dohoda)</label>
+        <button class="btn-reset" id="calcReset">Vynulovať</button>
+        <button class="btn-copy" id="calcCopy">Kopírovať účet</button>
+      </div>
+
+      <table id="priceTable">
+        <thead><tr><th>Výkon</th><th style="text-align:right;width:130px">Cena</th><th style="text-align:right;width:120px">Počet</th></tr></thead>
+        <tbody>
+          <tr class="tbl-group"><td colspan="3">Výjazdy mobilnej ambulancie</td></tr>
+          <tr data-price="1500"><td>Pohotovostný výjazd mobilnej ambulancie</td><td class="price">$ 1 500</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="500"><td>Výjazd na plánovaný výkon mobilnej ambulancie</td><td class="price">$ 500</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr class="tbl-group"><td colspan="3">Komplexné balíčky</td></tr>
+          <tr data-price="6900"><td>Vstupná veterinárna prehliadka</td><td class="price">$ 6 900</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="4100"><td>Preventívna prehliadka</td><td class="price">$ 4 100</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="900"><td>Prehliadka po úraze / chorobe</td><td class="price">$ 900</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="100"><td>Pred/pooperačná prehliadka</td><td class="price">od $ 100</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="500"><td>Liečba infekcie / ochorenia</td><td class="price">od $ 500</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="700"><td>Zdravotný zákrok</td><td class="price">od $ 700</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="900"><td>Osvedčenie pre pracovné psy</td><td class="price">$ 900</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr class="tbl-group"><td colspan="3">Menšie komplexné úkony</td></tr>
+          <tr data-price="500"><td>Vyšetrenie zdravotného problému</td><td class="price">od $ 500</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="1000"><td>Liečba infekcie / ochorenia</td><td class="price">od $ 1 000</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="500"><td>Ošetrenie drobných poranení / úrazu</td><td class="price">od $ 500</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="2500"><td>Ošetrenie stredných a väčších poranení / úrazu</td><td class="price">od $ 2 500</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="500"><td>Kontrola hojenia / preväz</td><td class="price">$ 500</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr class="tbl-group"><td colspan="3">Jednotlivé úkony</td></tr>
+          <tr data-price="1100"><td>Základné krvné testy</td><td class="price">$ 1 100</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="1100"><td>Čipovanie a kontrola čipu</td><td class="price">$ 1 100</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="1100"><td>Očkovanie</td><td class="price">$ 1 100</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="900"><td>Odčervenie</td><td class="price">$ 900</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+          <tr data-price="1300"><td>Vyšetrenie ultrazvukom</td><td class="price">$ 1 300</td><td><div class="qty"><button class="minus" aria-label="Uber">−</button><span>0</span><button class="plus" aria-label="Pridaj">+</button></div></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+  <footer class="site-footer">
+    <div class="f-grid">
+      <div>
+        <div class="f-brand"><span class="vet">VET</span> <span class="ark">ARK</span> <small>LLC.</small></div>
+        <p>Mobilná veterinárna služba.<br>„Vaši miláčikovia, naša priorita!"</p>
+      </div>
+      <div>
+        <b>Pohotovosť</b>
+        <p>Pracovné dni: 18:00 – 23:00<br>Víkend: zatiaľ nedostupné<br>Len pre registrovaných pacientov</p>
+      </div>
+      <div>
+        <b>Kontakt</b>
+        <p>Discord: server VET ARK</p>
+      </div>
+    </div>
+    <div class="f-bottom">© Vet Ark (fiktívna organizácia) · Veterinárna Služba Vet Ark · interné materiály nešíriť mimo frakcie · <button class="f-link" id="privacyOpen">Ochrana osobných údajov</button><br><span class="f-disclaimer">Vet Ark je fiktívna organizácia v rámci roleplay servera FiveM (GTA V). Táto stránka neposkytuje skutočné veterinárne služby ani odborné poradenstvo — pri zdravotných problémoch zvieraťa kontaktujte skutočného veterinárneho lekára.<br>Nie sme spojení so žiadnou skutočnou značkou. Nie sme prepojení so spoločnosťami Rockstar Games, Take-Two Interactive Software ani Cfx.re (FiveM), ani nimi nie sme podporovaní. Grand Theft Auto a GTA sú ochranné známky Take-Two Interactive Software, Inc.</span></div>
+  </footer>
+</div>
+
+<div class="editor" id="editor" role="dialog" aria-label="Záznam">
+  <div class="ed-panel">
+    <button class="rd-close" id="edClose" aria-label="Zavrieť">×</button>
+    <h2 id="edTitle">Záznam</h2>
+    <div class="rd-meta" id="edMeta"></div>
+    <div class="form-grid ed-form" id="edForm"></div>
+    <button class="btn-gen" id="edGen" style="margin-top:14px">Vygenerovať náhľad správy</button>
+    <textarea id="edText" spellcheck="false"></textarea>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="field"><label for="edChannel">Discord kanál (ID) — kam má bot záznam poslať</label><input id="edChannel" list="edChannelList" placeholder="napr. 1546234981884625016"><datalist id="edChannelList"></datalist></div>
+      <div class="field"><label for="edChannelName">Názov kanála (voliteľné, na zapamätanie)</label><input id="edChannelName" placeholder="napr. #zaznamy-psy"></div>
+    </div>
+    <div class="rbtns">
+      <button class="btn-gen" id="edSave" style="margin-top:0">Uložiť do karty</button>
+      <button class="btn-copy" id="edCopy" style="background:var(--charcoal)">Kopírovať</button>
+      <button class="btn-copy" id="edSend">Odoslať do Discordu (bot)</button>
+      <button class="pbtn del" id="edDelete" style="display:none;padding:10px 16px">Zmazať záznam</button>
+    </div>
+  </div>
+</div>
+
+<div class="reader" id="evEdit" role="dialog" aria-label="Udalosť">
+  <div class="rd-panel" style="max-width:440px">
+    <button class="rd-close" id="evClose" aria-label="Zavrieť">×</button>
+    <h2 id="evTitle">Nová udalosť</h2>
+    <div class="form-grid" style="margin-top:14px">
+      <div class="field full"><label for="evName">Názov (pacient / vyšetrenie)</label><input id="evName" placeholder="napr. Rex — kontrola"></div>
+      <div class="field"><label for="evDate">Dátum</label><input id="evDate" type="date"></div>
+      <div class="field"><label for="evStart">Začiatok</label><select id="evStart"></select></div>
+      <div class="field"><label for="evDur">Trvanie (hod.)</label><input id="evDur" type="number" min="0.5" step="0.5" value="1"></div>
+    </div>
+    <div class="rbtns" style="margin-top:16px">
+      <button class="btn-gen" id="evSave" style="margin-top:0">Uložiť</button>
+      <button class="pbtn del" id="evDelete" style="display:none;padding:10px 16px">Zmazať</button>
+    </div>
+  </div>
+</div>
+
+<div class="reader" id="privacy" role="dialog" aria-label="Ochrana osobných údajov">
+  <div class="rd-panel">
+    <button class="rd-close" id="privacyClose" aria-label="Zavrieť">×</button>
+    <h2>Ochrana osobných údajov</h2>
+    <div class="rd-meta">Vet Ark — fanúšikovský roleplay projekt (FiveM) · aktualizované 15. 10. 2026</div>
+    <div class="rd-body">
+      <p><b>Kto údaje spracúva.</b> Prevádzkovateľom tejto stránky je súkromná osoba (správca frakcie VET ARK), ktorú zastihnete na Discord serveri VET ARK (rola Veterinár). Nejde o firmu ani o skutočnú veterinárnu ambulanciu.</p>
+      <p><b>Aké údaje spracúvame.</b> Pri prihlásení cez Discord sa ukladá vaše Discord meno, avatar a identifikátor účtu; členstvo a rola na Discord serveri VET ARK sa overujú na serveri pri každom prístupe. Ak odošlete objednávku alebo správu, spracúvame údaje, ktoré do nej uvediete (herné meno postavy, herný kontakt). Obsah pridaný členmi (články, fotky, kartotéka a záznamy fiktívnych pacientov) je herný obsah. E-mail ani iné údaje z Discordu nepožadujeme.</p>
+      <p><b>Na čo a na akom základe.</b> Výlučne na fungovanie tejto stránky: prihlásenie, overenie členstva, spracovanie objednávok v rámci roleplay hry a zobrazovanie obsahu. Právnym základom je oprávnený záujem prevádzkovateľa a členov komunity na fungovaní stránky (čl. 6 ods. 1 písm. f GDPR). Údaje nepredávame, neposkytujeme tretím stranám na marketing a nepoužívame ich na profilovanie ani automatizované rozhodovanie.</p>
+      <p><b>Kde sú uložené a kto k nim má prístup.</b> Databáza a prihlásenie bežia v službe Supabase (región EÚ, Frankfurt — ak má váš projekt iný región, upravte). Prihlásenie zabezpečuje Discord Inc. (USA) a objednávky i záznamy sa odosielajú do súkromného Discord servera frakcie. Samotnú stránku hostuje GitHub Pages (GitHub Inc., USA), ktorý pri načítaní stránky spracúva vašu IP adresu v serverových logoch. Pri poskytovateľoch mimo EÚ sa prenos opiera o štandardné zmluvné doložky týchto spoločností. Stránka nenačítava žiadne písma, skripty ani iné zdroje z cudzích serverov a nepoužíva analytické ani reklamné nástroje.</p>
+      <p><b>Čo si ukladá váš prehliadač.</b> Len funkčné údaje (localStorage): prihlasovaciu reláciu Supabase, zvolený vzhľad stránky a u veterinárov meno lekára a naposledy použité Discord kanály. Žiadne sledovacie cookies.</p>
+      <p><b>Ako dlho.</b> Účet a herný obsah uchovávame, kým ste členom frakcie alebo kým nepožiadate o vymazanie; po odchode z frakcie účet vymažeme najneskôr do 30 dní. Serverové logy hostingu uchováva GitHub podľa vlastných pravidiel (obvykle krátkodobo).</p>
+      <p><b>Vaše práva.</b> Máte právo na prístup k údajom, ich opravu, vymazanie, obmedzenie spracúvania, prenosnosť a právo namietať. Stačí napísať správcom na Discord serveri VET ARK — účet a súvisiace údaje vymažeme. Ak si myslíte, že vaše údaje spracúvame v rozpore s právom, môžete podať sťažnosť dozornému orgánu: Úrad na ochranu osobných údajov SR (dataprotection.gov.sk) alebo Úřad pro ochranu osobních údajů ČR (uoou.gov.cz).</p>
+      <p><b>Upozornenie.</b> Všetok obsah stránky (klinika, pacienti, ceny, správy) je fiktívny a existuje len v rámci roleplay servera FiveM (GTA V). Skutočné sú len prihlasovacie údaje z Discordu v rozsahu uvedenom vyššie.</p>
+    </div>
+  </div>
+</div>
+
+<div class="reader" id="reader" role="dialog" aria-label="Článok">
+  <div class="rd-panel">
+    <button class="rd-close" aria-label="Zavrieť">×</button>
+    <h2 id="rdTitle"></h2>
+    <div class="rd-meta" id="rdMeta"></div>
+    <div class="rd-body" id="rdBody"></div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Náhľad fotky">
+  <button class="lb-close" aria-label="Zavrieť">×</button>
+  <img id="lbImg" alt="">
+  <figcaption id="lbCap"></figcaption>
+</div>
+
+<div class="toast" id="toast">Skopírované ✓</div>
+
+<script src="assets/app.js" defer></script>
+</body>
+</html>
