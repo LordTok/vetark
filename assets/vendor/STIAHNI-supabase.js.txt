@@ -1,0 +1,2 @@
+Sem patrí súbor supabase.js — pozri POSTUP.md, krok 1.
+https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js
